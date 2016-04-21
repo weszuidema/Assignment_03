@@ -1,0 +1,76 @@
+---
+title: "Assignment 3 Solutions"
+author: "Wesley Zuidema"
+date: "April 21, 2016"
+output: pdf_document
+---
+
+```{r}
+library("foreign")
+library("dplyr")
+library("broom")
+library("ggplot2")
+
+set.seed(1234)
+
+knitr::opts_chunk$set(cache = TRUE, autodep = TRUE)
+```
+
+Problem 1
+
+```{r}
+nunn <- read.dta("Nunn_Wantchekon_AER_2011.dta") %>% tbl_df()
+mod1 <- lm(trust_neighbors ~ exports, data = nunn) 
+```
+
+Interpret the coefficient's magnitude and statistical significance.
+
+Some questions on p-values
+
+    What is the null hypothesis of the t-tests
+    Explain the meaning of the p-value
+    Is the p-value the probability that the null hypothesis is correct?
+
+What other variables does Nunn include? Include those in Table 1, Model 1. Run that regression.
+
+Does the R^2 match that in Table 1?
+
+Do the standard errors match those in Table 1? Any guesses why?
+
+Run the regression in Table 1, model 6. Why is it "log(1 + exports / pop)" instead of "log(exports / pop)"?
+
+```{r}
+resampler_coef <- function(mod, .data, iter = 1) {
+  # Remove missing values
+  .data <- na.omit(.data)
+  # Coefficients
+  beta <- coef(mod)
+  # mod$terms contains the formula used in the regression
+  X <- model.matrix(mod$terms, data = .data)
+  # estimate of std. dev. of errors
+  sigma <- sqrt(sum(mod$residuals ^ 2) / mod$df.residual)
+  # This produces the same result
+  # sigma <- summary(mod1)$sigma  
+  # Number of observations
+  n <- nrow(X)
+  # Name of dependent variable
+  outcome_var_name <- all.vars(mod$terms)[1]
+  # List to save results
+  results <- vector(mode = "list", length = iter)
+  for (i in seq_len(iter)) {
+    # draw errors
+    errors <- rnorm(n, mean = 0, sd = sigma)
+    # create new outcome variable from errors
+    y <- X %*% beta + errors
+    # replace outcome variable
+    .data[[outcome_var_name]] <- y
+    # run regression
+    newmod <- lm(mod$terms, data = .data)
+    # Save coefficients as a data frame to the list
+    results[[i]] <- tidy(newmod) %>% mutate(.iter = i)
+  }
+  # Convert the list of data frames to a single data frame by stacking the iterations
+  bind_rows(results)
+}
+```
+
