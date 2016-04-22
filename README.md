@@ -177,7 +177,7 @@ variables that may explain differences.
 
 One of the assumptions necessary for OLS standard errors to be correct is homoskedasticity homoskedasticity (constant variance), and that the errors are uncorrelated.
 
-<div class="bs-collout"
+<div class="bs-callout bs-callout-info">
 - How might that assumption be violated?
 - Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors?
 - Do the standard errors match those in Table 1? What sort of standard errors does the article use?
@@ -297,7 +297,7 @@ There are several ways to calculate standard errors from bootstraped replication
 The following are two simple methods.
 
 1. Calculate the standard error from these simulations by taking the standard deviation of the estimates.
-   Suppose $\beta^{*b}_k$ is the estimated cofficient from replication $b \in 1:B$, and $\bar\tilde^{*}_k = (\sum \beta^{*b}_k) / B$.
+   Suppose $\beta^{*b}_k$ is the estimated cofficient from replication $b \in 1:B$, and $\bar\beta^{*}_k = (\sum \beta^{*b}_k) / B$.
    Then the bootstrap standard error is,
    $$
    \se_k(\hat\beta_{k}) = \sqrt{\frac{1}{B - 1} \sum (\beta^{*b}_k - \bar\beta^{*b}_k)^2}

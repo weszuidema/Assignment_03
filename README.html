@@ -159,7 +159,7 @@ library(&quot;DT&quot;)</code></pre>
 <h2>Nunn and Wantchekon AER 2011 example</h2>
 <p>Let’s run some regressions from</p>
 <blockquote>
-<p>Nunn, Nathan and Leonard Wantchekon. 2011. “The Slave Trade and the Origins of Mistrust in Africa.” American Economic Review, 101(7):3221-52. <a href="https://dx.doi.org/10.1257/aer.101.7.3221">doi:10.1257/aer.101.7.3221</a></p>
+<p>Nunn, Nathan and Leonard Wantchekon. 2011. “The Slave Trade and the Origins of Mistrust in Africa.” American Economic Review, 101(7):3221-52. <a href="https://dx.doi.org/10.1257/aer.101.7.3221"><a href="doi:10.1257/aer.101.7.3221" class="uri">doi:10.1257/aer.101.7.3221</a></a></p>
 </blockquote>
 <p>The replication data for the is available from its <a href="https://dx.doi.org/10.1257/aer.101.7.3221">AER site</a>, but the main dataset is included in this repository. Since the main dataset is a Stata <code>.dta</code> file load it using the <code>read.dta</code> function and convert it to a <strong>dplyr</strong> <code>tbl</code> so the <code>print</code> function produces nicer output.</p>
 <pre class="r"><code>nunn &lt;- read.dta(&quot;Nunn_Wantchekon_AER_2011.dta&quot;) %&gt;% tbl_df()</code></pre>
@@ -238,7 +238,12 @@ p(H_0 | \text{data}) =
 <div id="validity-of-the-standard-errors" class="section level3">
 <h3>Validity of the standard errors</h3>
 <p>One of the assumptions necessary for OLS standard errors to be correct is homoskedasticity homoskedasticity (constant variance), and that the errors are uncorrelated.</p>
-&lt;div class=“bs-collout” - How might that assumption be violated? - Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors? - Do the standard errors match those in Table 1? What sort of standard errors does the article use?
+<div class="bs-callout bs-callout-info">
+<ul>
+<li>How might that assumption be violated?</li>
+<li>Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors?</li>
+<li>Do the standard errors match those in Table 1? What sort of standard errors does the article use?</li>
+</ul>
 </div>
 </div>
 <div id="log-slave-exports-per-capita" class="section level3">
@@ -324,7 +329,7 @@ head(beta_dist)</code></pre>
     do(tidy(lm(trust_neighbors ~ exports, data = nunn)))</code></pre>
 <p>There are several ways to calculate standard errors from bootstraped replications. The following are two simple methods.</p>
 <ol style="list-style-type: decimal">
-<li><p>Calculate the standard error from these simulations by taking the standard deviation of the estimates. Suppose <span class="math inline">\(\beta^{*b}_k\)</span> is the estimated cofficient from replication <span class="math inline">\(b \in 1:B\)</span>, and <span class="math inline">\(\bar\tilde^{*}_k = (\sum \beta^{*b}_k) / B\)</span>. Then the bootstrap standard error is, <span class="math display">\[
+<li><p>Calculate the standard error from these simulations by taking the standard deviation of the estimates. Suppose <span class="math inline">\(\beta^{*b}_k\)</span> is the estimated cofficient from replication <span class="math inline">\(b \in 1:B\)</span>, and <span class="math inline">\(\bar\beta^{*}_k = (\sum \beta^{*b}_k) / B\)</span>. Then the bootstrap standard error is, <span class="math display">\[
    \se_k(\hat\beta_{k}) = \sqrt{\frac{1}{B - 1} \sum (\beta^{*b}_k - \bar\beta^{*b}_k)^2}
    \]</span> The confidence interval is thus, <span class="math display">\[
    \hat{\beta}_k \pm \se_{bs}(\hat\beta_k)
