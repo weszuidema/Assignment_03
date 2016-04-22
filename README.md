@@ -138,11 +138,21 @@ variables that may explain differences.
 - Do the R^2 and number of observations match those reported in Table 1?
 - Calculate the fitted values of the regression by multiplying the $\beta$ vector and the $\mat{X}$ matrix.
   Confirm that you get the same results as using `predict()`.
+- How would you create a plot that shows the predicted values of `trust_neighbors` as the value of `exports` changes?
+  What is different about the multiple regression case than the bivariate case?
 </div>
 
-In this regression
+### Understanding Multiple Regression
 
-Run the regresssion 
+<div class="bs-callout bs-callout-info">
+- Run the following regresssions
+    1. Run the regression of `trust_neighbors` on the controls. Save the residuals
+    2. Run the regression of `exports` on the controls. Save the residuals
+    3. Regression the residuals from regression 1 on the residuals from regression 2.
+- How does the coefficient in regression 3 compare the the coefficient on `exports` from the regression in Table 1, Model 6?
+    What does that say about what multiple regression is doing?
+</div>
+
 
 ### Validity of the standard errors
 
@@ -224,10 +234,12 @@ head(beta_dist)
 ```
 
 <div class="bs-callout bs-callout-info">
-- Plot the distributions of the coefficients of 
+- Plot the distributions of the coefficients of exports.
 - Calculate the correlation matrix of the coefficients.
   How similar is it to that returned from `vcov(mod)
 </div>
+
+TODO: clarify this
 
 ### Bootstrapping
 
@@ -304,6 +316,8 @@ For example, in a time series it would be inappropriate to sample observations w
 
 ### F-test example
 
+TODO: Fix this
+
 An $F$-test tests the null hypthosis that several coefficients in the regression are all 0 vs. the alternative that 
 at least one of the coefficients is non-zero.
 
@@ -313,7 +327,6 @@ H_0: &\quad \beta_j = \dots = \beta_J = 0
 H_a: &\quad \text{at least one $\beta_k \neq 0$}
 \end{aligned}
 $$
-
 
 - Run F-tests of the multiple regression model vs. the model with no controls.
 - Run and interpet an F-test on some reasonable group of variables.
@@ -356,7 +369,7 @@ resampler_models <- function(mod, .data, iter = 1) {
 }
 ```
 
-## Multiple comparisons and F-test
+## Multiple comparisons and the F-test
 
 
 ```r
@@ -364,6 +377,10 @@ noise <- data.frame(matrix(rnorm(2100), nrow = 100, ncol = 21))
 summary(lm(noise))
 ```
 
-- How many variables have t-tests that are significant?
+<div class="bs-callout bs-callout-info">
+- How many variables have t-tests that are significant? Is this to be expected?
 - Is the F-test significant? 
-- Explain the difference
+- What is the null and alternative hypotheses of the F-test? What are the implicit
+  null and alternative hypotheses of running all those t-tests? What explains the
+  difference in results?
+</div>

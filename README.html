@@ -166,8 +166,7 @@ library(&quot;DT&quot;)</code></pre>
 <p>There are many variables in this data. When <code>read.dta</code> converts a Stata data file the descriptions of the variables end up in an R <a href="https://stat.ethz.ch/R-manual/R-devel/library/base/html/attributes.html">attribute</a> <code>&quot;var.labels&quot;</code>. Print out the variable lables to get the descriptions of the files<a href="#fn1" class="footnoteRef" id="fnref1"><sup>1</sup></a></p>
 <pre class="r"><code>data_frame(variable = names(nunn), description = attr(nunn, &quot;var.labels&quot;)) %&gt;%
   datatable(class = &#39;cell-border stripe&#39;)</code></pre>
-<p><div id="htmlwidget-1137" style="width:100%;height:auto;" class="datatables html-widget"></div>
-<script type="application/json" data-for="htmlwidget-1137">{"x":{"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59"],["respno","ethnicity","murdock_name","isocode","region","district","townvill","location_id","trust_relatives","trust_neighbors","intra_group_trust","inter_group_trust","trust_local_council","ln_export_area","export_area","export_pop","ln_export_pop","age","age2","male","urban_dum","occupation","religion","living_conditions","education","near_dist","distsea","loc_murdock_name","loc_ln_export_area","local_council_performance","council_listen","corrupt_local_council","school_present","electricity_present","piped_water_present","sewage_present","health_clinic_present","district_ethnic_frac","frac_ethnicity_in_district","townvill_nonethnic_mean_exports","district_nonethnic_mean_exports","region_nonethnic_mean_exports","country_nonethnic_mean_exports","murdock_centr_dist_coast","centroid_lat","centroid_long","explorer_contact","railway_contact","dist_Saharan_node","dist_Saharan_line","malaria_ecology","v30","v33","fishing","exports","ln_exports","total_missions_area","ln_init_pop_density","cities_1400_dum"],["Respondent number in Afrobarometer dataset","Ethnicity name: from Afrobarometer q79","Ethnicity name: from Murdock","Country 3 digit iso code","Region: from Afrobarometer","District: from Afrobarometer","Town/village: from Afrobarometer","Unique location-of-repondent identifier - based on isocode region district townv","Trust of relatives: q84a","Trust of neighbors: q84b","Intra-group trust: q84d","Inter-group trust: q84c","Trust of local government council: q55d","Log [(total slave exports: Atlantic + Indian) / area (km^2)","(total slave exports: Atlantic + Indian) / area (km^2)","Exports divided by historic Murdock population","Ln (1+exports/Murdock historic population)","Age: q1","Age squared","Indicator for respondent being male: q101","Indicator for respondent living in urban area","Occupation categories: q95","Religion categories: q91","Living condition categories:q4b","Education categories: Afrobarometer q90","Current distance from coast 1000s kms","Historic distance from coast 1000s kms","Murdock identifier for the current location of the respondent","Slave exports measure based on current location of respondent","Perceived performance of local council: q68c","Does the local council listen: q62b","How much corruption in local council: q56c","Is there a school in the PSU: q116b","Is there electricity in the PSU: q116d","Is there piped water in the PSU: q116e","Is there sewage in the PSU: q116f","Is there a health clinic in the PSU: q116g","District-level ethnic fractionalization","Proportion of ethnic group in district","Avg slave exports of other ethnicities within town/village","Avg slave exports of other ethnicities within district","Avg slave exports of other ethnicities within region","Avg slave exports of other ethnicities within country","Historic distance of ethnicity's centroid from the coast (in kms)","Historic latitude of centroid of ethnic group","Historic longitude of centroid of ethnic group","Indicator for historic contact with European explorer","Indicator variable for historic integration into the colonial railway network","Historic distance of ethnicity's centroid from a centroid (town) in Saharan trad","Historic distance of ethnicity's centroid from a line (route) in Saharan trade (","Ethnic groups average malaria ecology measure","Pre-colonial settlement patterns of ethnicity: from Ethngraphic Atlas v30","Pre-colonial juris. hierarchy beyond the local community: Ethnographic Atlas v33","Pre-colonial reliance on fishing: Ethnographic Atlas v3","(Atlantic+Indian Exports)","ln(1+Atlantic+Indian Exports)","Total Catholic + Protestant mission per land area","Log population density during the colonial period - from Murdock","Indicator for existence of city among ethnic group in 1400"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> \u003c/th>\n      <th>variable\u003c/th>\n      <th>description\u003c/th>\n    \u003c/tr>\n  \u003c/thead>\n\u003c/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]},"callback":null,"filter":"none"},"evals":[],"jsHooks":[]}</script></p>
+<p>preserve7112d7ba957dd2f8</p>
 <p>In Table 1, NW run several models with Trust in Neighbors as an outcome variable, different measures of slave exports as the treatment variable, and the same set of controls variables. The relevant variables in the data are:</p>
 <ul>
 <li><code>trust_neighbors</code>: Trust of neighbors</li>
@@ -209,10 +208,23 @@ p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data} | H_a) p
 <li>How much does the coefficient change with the addition of control variables? What does that suggest?</li>
 <li>Do the R^2 and number of observations match those reported in Table 1?</li>
 <li>Calculate the fitted values of the regression by multiplying the <span class="math inline">\(\beta\)</span> vector and the <span class="math inline">\(\mat{X}\)</span> matrix. Confirm that you get the same results as using <code>predict()</code>.</li>
+<li>How would you create a plot that shows the predicted values of <code>trust_neighbors</code> as the value of <code>exports</code> changes? What is different about the multiple regression case than the bivariate case?</li>
 </ul>
 </div>
-<p>In this regression</p>
-<p>Run the regresssion</p>
+</div>
+<div id="understanding-multiple-regression" class="section level3">
+<h3>Understanding Multiple Regression</h3>
+<div class="bs-callout bs-callout-info">
+<ul>
+<li>Run the following regresssions
+<ol style="list-style-type: decimal">
+<li>Run the regression of <code>trust_neighbors</code> on the controls. Save the residuals</li>
+<li>Run the regression of <code>exports</code> on the controls. Save the residuals</li>
+<li>Regression the residuals from regression 1 on the residuals from regression 2.</li>
+</ol></li>
+<li>How does the coefficient in regression 3 compare the the coefficient on <code>exports</code> from the regression in Table 1, Model 6? What does that say about what multiple regression is doing?</li>
+</ul>
+</div>
 </div>
 <div id="validity-of-the-standard-errors" class="section level3">
 <h3>Validity of the standard errors</h3>
@@ -283,10 +295,11 @@ p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data} | H_a) p
 head(beta_dist)</code></pre>
 <div class="bs-callout bs-callout-info">
 <ul>
-<li>Plot the distributions of the coefficients of</li>
+<li>Plot the distributions of the coefficients of exports.</li>
 <li>Calculate the correlation matrix of the coefficients. How similar is it to that returned from `vcov(mod)</li>
 </ul>
 </div>
+<p>TODO: clarify this</p>
 </div>
 <div id="bootstrapping" class="section level3">
 <h3>Bootstrapping</h3>
@@ -331,6 +344,7 @@ head(beta_dist)</code></pre>
 </div>
 <div id="f-test-example" class="section level3">
 <h3>F-test example</h3>
+<p>TODO: Fix this</p>
 <p>An <span class="math inline">\(F\)</span>-test tests the null hypthosis that several coefficients in the regression are all 0 vs. the alternative that at least one of the coefficients is non-zero.</p>
 <p><span class="math display">\[
 \begin{aligned}[t]
@@ -377,15 +391,17 @@ H_a: &amp;\quad \text{at least one $\beta_k \neq 0$}
 }</code></pre>
 </div>
 </div>
-<div id="multiple-comparisons-and-f-test" class="section level2">
-<h2>Multiple comparisons and F-test</h2>
+<div id="multiple-comparisons-and-the-f-test" class="section level2">
+<h2>Multiple comparisons and the F-test</h2>
 <pre class="r"><code>noise &lt;- data.frame(matrix(rnorm(2100), nrow = 100, ncol = 21))
 summary(lm(noise))</code></pre>
+<div class="bs-callout bs-callout-info">
 <ul>
-<li>How many variables have t-tests that are significant?</li>
+<li>How many variables have t-tests that are significant? Is this to be expected?</li>
 <li>Is the F-test significant?</li>
-<li>Explain the difference</li>
+<li>What is the null and alternative hypotheses of the F-test? What are the implicit null and alternative hypotheses of running all those t-tests? What explains the difference in results?</li>
 </ul>
+</div>
 </div>
 <div class="footnotes">
 <hr />
