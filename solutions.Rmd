@@ -10,6 +10,7 @@ library("foreign")
 library("dplyr")
 library("broom")
 library("ggplot2")
+library("texreg")
 
 # Ensures results are identical each time you run the simulation
 set.seed(1234)
@@ -22,18 +23,38 @@ Problem 1
 
 ```{r}
 nunn <- read.dta("Nunn_Wantchekon_AER_2011.dta") %>% tbl_df()
-mod1 <- lm(trust_neighbors ~ exports, data = nunn) 
+mod1 <- lm(trust_neighbors ~ exports + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn) 
+
+# str(nunn)
+# attr(nunn, "var.labels")
 ```
 
 Interpret the coefficient's magnitude and statistical significance.
+  The export of slaves is negatively correlated with modern levels of trust. We reject the null hypothesis at the .01 signifiance level. I can't assess the magnitude without knowing the units or effect size.
 
 Some questions on p-values
 
-    What is the null hypothesis of the t-tests
+    What is the null hypothesis of the t-tests?
+      The null hypothesis is that the coefficient of "exports" is zero.
     Explain the meaning of the p-value
+      The probability of observing as extreme or more extreme data if the null hypothesis is true.
     Is the p-value the probability that the null hypothesis is correct?
+      No, it is not. The p value is only meaningful because it assumes the null hypothesis is true.
 
 What other variables does Nunn include? Include those in Table 1, Model 1. Run that regression.
+
+```{r}
+nunn <- mutate(nunn, exports_area = (exports / export_area))
+nunn <- mutate(nunn, exports_pop = (exports / export_pop))
+mod2 <- lm(trust_neighbors ~ exports_area + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn)
+mod3 <- lm(trust_neighbors ~ exports_pop + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn)
+mod4 <- lm(trust_neighbors ~ log(1 + exports) + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn)
+mod5 <- lm(trust_neighbors ~ log(1 + exports_area) + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn)
+mod6 <- lm(trust_neighbors ~ log(1 + exports_pop) + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn)
+
+htmlreg(list(mod1, mod2, mod3, mod4, mod5, mod6), file = "regtable.html", stars = c())
+```
+
 
 Does the R^2 match that in Table 1?
 
