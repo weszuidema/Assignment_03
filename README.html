@@ -127,7 +127,10 @@ $(document).ready(function () {
 <p><span class="math display">\[
 \DeclareMathOperator{\cor}{cor}
 \DeclareMathOperator{\cov}{cov}
+\DeclareMathOperator{\se}{se}
 \DeclareMathOperator{\quantile}{quantile}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\renewcommand{\mat}[1]{\boldsymbol{#1}}
 \]</span></p>
 <div id="instructions" class="section level2">
 <h2>Instructions</h2>
@@ -152,8 +155,8 @@ library(&quot;DT&quot;)</code></pre>
 <p>Since some of these computations will take time, we can cache the results so that knitr will only run code that has changed.</p>
 <pre class="r"><code>knitr::opts_chunk$set(cache = TRUE, autodep = TRUE)</code></pre>
 </div>
-<div id="problem-1" class="section level2">
-<h2>Problem 1</h2>
+<div id="nunn-and-wantchekon-aer-2011-example" class="section level2">
+<h2>Nunn and Wantchekon AER 2011 example</h2>
 <p>Let’s run some regressions from</p>
 <blockquote>
 <p>Nunn, Nathan and Leonard Wantchekon. 2011. “The Slave Trade and the Origins of Mistrust in Africa.” American Economic Review, 101(7):3221-52. <a href="https://dx.doi.org/10.1257/aer.101.7.3221"><a href="doi:10.1257/aer.101.7.3221" class="uri">doi:10.1257/aer.101.7.3221</a></a></p>
@@ -172,31 +175,77 @@ library(&quot;DT&quot;)</code></pre>
 <li>Individual controls: <code>age</code>, <code>age2</code>, <code>male</code>, <code>urban_dum</code>, <code>education</code>, <code>occupation</code>, <code>religion</code>, <code>living_conditions</code></li>
 <li>District controls: <code>district_ethnic_frac</code>, <code>frac_ethnicity_in_district</code></li>
 <li>Country-fixed effects: <code>isocode</code></li>
-<li></li>
 </ul>
+<div id="bivariate-regression" class="section level3">
+<h3>Bivariate regression</h3>
 <p>Run a regression of the Trust of Neighbors on Slave exports. This is Table 1, Model 1, witout any of the control variables.</p>
 <pre class="r"><code>mod1 &lt;- lm(trust_neighbors ~ exports, data = nunn)</code></pre>
 <div class="bs-callout bs-callout-info">
 <ul>
 <li>Interpret the magnitude and statistical significance of the coefficient on <code>trust_neighbors</code>.</li>
+<li>Plot the fitted values and confidence interval of the fitted values of regression vs. <code>exports</code>.</li>
+<li>Plot the residuals of this regresion against the fitted values of the regression. Do they appear to have constant variance? Are they approximately symmetric?</li>
 <li>What is the null hypothesis of the t-test reported by <code>summary()</code>? Explain the meaning of the p-value. Be precise. Is the p-value the probability that the null hypothesis is correct?</li>
 </ul>
 </div>
-<p>Frequentist statistics assigns no probabilities to hypotheses (parameter values). They are either true or false, but they are unknown. Only samples are random variables, and have an associated probability. But as scientists, we are generally interested in the probability that a hypothesis is correct.<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> This can be calculated using Bayes law as, <span class="math display">\[
-p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data})}
-\]</span> The p-value gives, teh The important missing piece of information is <span class="math inline">\(p(! H_0)\)</span>, the probability that the null hypothesis is not correct, i.e. the probability that the null hypothesis is correct, which is the probability that the research hypothesis is incorrect.<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a></p>
+<p>Frequentist statistics assigns no probabilities to hypotheses (parameter values). They are either true or false, but they are unknown. Only samples are random variables, and have an associated probability. But as scientists, we are generally interested in the probability that a hypothesis is correct.<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> The probability that the research hypothesis (<span class="math inline">\(H_0\)</span>) is correct can be calculated with Bayes law, <span class="math display">\[
+p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)} = \frac{p(\text{data | H_a} p(H_a))}{p(\text{data})} .
+\]</span> Working somewhat informally, the p-value gives <span class="math inline">\(p(\text{data} | H_0)\)</span>. An important missing piece of information is the baseline or prior probabilty that the null hypothesis is true, <span class="math inline">\(p(H_0)\)</span>, which is the complement of the probability that the research hypothesis is true, <span class="math inline">\(p(H_0) = 1 - p(H_a)\)</span>,<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a> <a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a></p>
 <div class="bs-callout bs-callout-info">
 <ul>
-<li>If more than the p-value is required to make sense of the research findings, how does the article increase your belief about <span class="math inline">\(p(H_a)\)</span>?</li>
-<li>Suppose you believed that NW were p-value hacking (which I don’t think they are!). What part of Bayes law is that affecting?</li>
+<li>If more than the p-value is required to make sense of the research findings, what does the article do to increase your belief about <span class="math inline">\(p(H_a)\)</span>?</li>
+<li>Suppose you believed that NW were p-value hacking (which I don’t think they are!). What part of Bayes law is that affecting? If you think that someone is p-value hacking, then you are saying that they will always produce significant p-values regardless of whether the null or alternative hypotheses are true.</li>
 </ul>
 </div>
-<div class="bs-callout bs-callout-info">
-<p>What are the control variables that NW include in the models in Table 1? Run the model in Table 1, Regression 1.</p>
-<p>Does the R^2 match that in Table 1?</p>
-<p>Do the standard errors match those in Table 1? Any guesses why?</p>
-<p>Run the regression in Table 1, model 6. Why is it “log(1 + exports / pop)” instead of “log(exports / pop)”?</p>
+<p>In the models in Table 1, NW includes control variables to account for individual, district, and country-level variables that may explain differences.</p>
 </div>
+<div id="multiple-regression" class="section level3">
+<h3>Multiple regression</h3>
+<div class="bs-callout bs-callout-info">
+<ul>
+<li>What are the control variables that NW include in the models in Table 1?</li>
+<li>Run the model in Table 1, Regression 1 and report the results: coefficients, p-values, etc.</li>
+<li>Interpret the coefficient on <code>exports</code></li>
+<li>How much does the coefficient change with the addition of control variables? What does that suggest?</li>
+<li>Do the R^2 and number of observations match those reported in Table 1?</li>
+<li>Calculate the fitted values of the regression by multiplying the <span class="math inline">\(\beta\)</span> vector and the <span class="math inline">\(\mat{X}\)</span> matrix. Confirm that you get the same results as using <code>predict()</code>.</li>
+</ul>
+</div>
+<p>In this regression</p>
+<p>Run the regresssion</p>
+</div>
+<div id="validity-of-the-standard-errors" class="section level3">
+<h3>Validity of the standard errors</h3>
+<p>One of the assumptions necessary for OLS standard errors to be correct is homoskedasticity homoskedasticity (constant variance), and that the errors are uncorrelated.</p>
+<div class="bs-collout"
+- How might that assumption be violated?
+- Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors?
+- Do the standard errors match those in Table 1? What sort of standard errors does the article use?
+</div>
+
+</div>
+<div id="log-slave-exports-per-capita" class="section level3">
+<h3>log slave exports per capita</h3>
+<div>
+<ul>
+<li>Run the regression in Table 1, model 6, which uses “log(1 + exports / pop)” as a measure of slave exports.</li>
+<li>Interpret the effect of this variable</li>
+<li>Why is “log(1 + exports / pop)” used as the measure instead of “log(exports / pop)”?</li>
+<li>Plot the fitted values of log(1 + exports / pop) and their confidence interval against “log(1 + exports / pop)” against the residuals of the controls only regression. Include the line, confidence intervals, and data points.</li>
+<li>Plot the fitted values of exports / pop against the residuals of the controls only regression. Include the line, confidence intervals, and data points. How does this relationship differ from the one which used the level of slave exports with out taking the logarithm or adjusting for population?</li>
+</ul>
+</div>
+</div>
+<div id="sampling-distribution-of-coefficients" class="section level3">
+<h3>Sampling distribution of coefficients</h3>
+<p>Let’s understand what the confidence intervals mean in terms of the sampling distribution. Since we don’t know the true parameter values for this, we will pretend that the OLS point estimates are the “true” population parameters.</p>
+<p>Given an OLS model with estimated <span class="math inline">\(\hat{\beta}\)</span> and <span class="math inline">\(\hat{\sigma}\)</span>, and data, the function does <code>resampler_coef</code>,</p>
+<ol style="list-style-type: decimal">
+<li>Sample <span class="math inline">\(y^* \sim N(\hat{\beta} X, \hat{\sigma}^2)\)</span></li>
+<li>Estimate OLS estimates $ = ^* X + <span class="math inline">\(\varepsilon^*\)</span></li>
+<li>Repeat steps 1–2, <code>iter</code> times, store <span class="math inline">\(\beta^*\)</span> for each iteration, and return the estimates for all samples.</li>
+</ol>
+<p>The distribution of the <span class="math inline">\(\beta^*\)</span> is a sampling distribution of the parameters.</p>
 <pre class="r"><code>resampler_coef &lt;- function(mod, .data, iter = 1) {
   # Remove missing values
   .data &lt;- na.omit(.data)
@@ -229,12 +278,66 @@ p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data})}
   # Convert the list of data frames to a single data frame by stacking the iterations
   bind_rows(results)
 }</code></pre>
+<p>Suppose that <code>mod_1_6</code> is the model containing the results of the model in Table 1, Model 6. Simulate the sampling distribution of the</p>
+<pre class="r"><code>beta_dist &lt;- resampler_coef(mod_1_6, nunn, iter = 1024)
+head(beta_dist)</code></pre>
+<div class="bs-callout bs-callout-info">
 <ul>
-<li>Plot the distributions of the coefficients</li>
-<li>Calculate the correlation matrix of the coefficients. How similar is it to that from <code>vcov</code>?</li>
+<li>Plot the distributions of the coefficients of</li>
+<li>Calculate the correlation matrix of the coefficients. How similar is it to that returned from `vcov(mod)</li>
 </ul>
+</div>
+</div>
+<div id="bootstrapping" class="section level3">
+<h3>Bootstrapping</h3>
+<p>What you just did is an example of parametric bootstrap. It is a parametric bootstrap because you drew data from an assumed model (the OLS model that you estimated).</p>
+<p>An alternative is a non-parametric bootstrap. In a non-parametric bootstrap, instead of drawing samples from model, we are going to redraw samples from the sample.</p>
+<div class="figure">
+<img src="head-exploding-gif-tim-and-eric.gif" alt="Head Exploding Gif" />
+<p class="caption">Head Exploding Gif</p>
+</div>
+<p>An analogy is that the sample is to the population as the bootstrap is to the sample. We are treating the sample distribution as an estimate of the populution distribution and then drawing samples from that estimated population distribution.</p>
+<p>To do the bootstrapping we will use the <code>bootstrap</code> function in the <strong>tidyr</strong> package. However, the <a href="https://cran.r-project.org/web/packages/boot/index.html">boot</a> package supports many more advanced methods of bootstrapping.</p>
+<p>Let’s start by drawing a single bootstrap replication. It is a sample of the same size as the original data, drawn from the data <em>with replacement</em>.</p>
+<pre class="r"><code>nunn_bootstrapped &lt;- bootstrap(nunn, 1)</code></pre>
+<p>So, in order to calculate boostrapped standard erorrs, we will need to draw a sample of To get bootstrap standard errors, we draw <code>B</code> replications, run an regression, and save the estimates.</p>
+<pre class="r"><code>beta_bs &lt;- 
+  bootstrap(nunn, 1024) %&gt;%
+    do(tidy(lm(trust_neighbors ~ exports, data = nunn)))</code></pre>
+<p>There are several ways to calculate standard errors from bootstraped replications. The following are two simple methods.</p>
+<ol style="list-style-type: decimal">
+<li><p>Calculate the standard error from these simulations by taking the standard deviation of the estimates. Suppose <span class="math inline">\(\beta^{*b}_k\)</span> is the estimated cofficient from replication <span class="math inline">\(b \in 1:B\)</span>, and <span class="math inline">\(\bar\tilde^{*}_k = (\sum \beta^{*b}_k) / B\)</span>. Then the bootstrap standard error is, <span class="math display">\[
+   \se_k(\hat\beta_{k}) = \sqrt{\frac{1}{B - 1} \sum (\beta^{*b}_k - \bar\beta^{*b}_k)^2}
+   \]</span> The confidence interval is thus, <span class="math display">\[
+   \hat{\beta}_k \pm \se_{bs}(\hat\beta_k)
+   \]</span> Note that you use the estimate <span class="math inline">\(\hat{\beta}_k\)</span> from the original model, not the mean of the bootstrap estimates. This method works well if the sampling distribution of <span class="math inline">\(\beta_k\)</span> is symmetric.</p></li>
+<li><p>The second method is to use the quantiles of the bootstap estimates. E.g. a 95% confidence interval uses the 2.5% and 97.5% quantiles of the boostrap estimates. This method allows for asymmetric confidence intervals. However, it takes more replications to get accurate values of extreme quantiles than it does to calculate a standard deviation.</p></li>
+</ol>
+<div class="bs-callout bs-callout-info">
+<ul>
+<li>Estimate the bootstrapped confidence intervals using those two methods.</li>
+<li>Compare the bootstrapped confidence intervals to the OLS confidence interval.</li>
+</ul>
+</div>
+<p>There are even more advanced methods such as the studentized bootstrap, and the adjusted boostrap percentile (BCa) methods included in <code>boot.ci</code>.</p>
+<p>For bootstrapped standard errors to be valid, the samples from the data need to be taken in the same way as the sample was taken from the population. For example, in a time series it would be inappropriate to sample observations without accounting for their order.</p>
+<div class="bs-callout bs-callout-info">
+<ul>
+<li>What is the population in this paper?</li>
+<li>How was the sample drawn from this population?</li>
+<li>In the previous examples, did we draw the sample in the same way as it was drawn from the population? What would be a better way of drawing the bootstrapped samples? Try to implement it, and compare the differences.</li>
+</ul>
+</div>
+</div>
 <div id="f-test-example" class="section level3">
 <h3>F-test example</h3>
+<p>An <span class="math inline">\(F\)</span>-test tests the null hypthosis that several coefficients in the regression are all 0 vs. the alternative that at least one of the coefficients is non-zero.</p>
+<p><span class="math display">\[
+\begin{aligned}[t]
+H_0: &amp;\quad \beta_j = \dots = \beta_J = 0
+H_a: &amp;\quad \text{at least one $\beta_k \neq 0$}
+\end{aligned}
+\]</span></p>
 <ul>
 <li>Run F-tests of the multiple regression model vs. the model with no controls.</li>
 <li>Run and interpet an F-test on some reasonable group of variables.</li>
@@ -273,20 +376,6 @@ p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data})}
   bind_rows(results)
 }</code></pre>
 </div>
-<div id="bootstrap-example" class="section level3">
-<h3>Bootstrap example</h3>
-<p>Example of a single bootstrap replication. We draw N observations <em>with replacement</em> from the original data.</p>
-<pre class="r"><code>nunn_bootstrapped &lt;- bootstrap(nunn, 1)</code></pre>
-<p>To get bootstrap standard errors, we draw <code>m</code> replications, run the regression, and save the estimates.</p>
-<pre class="r"><code>bootstrap(nunn, 1024) %&gt;%
-  do(tidy(lm(trust_neighbors ~ exports, data = nunn)))</code></pre>
-<p>There are several ways to calculate standard errors from bootstraped replications.</p>
-<ul>
-<li>Calculate the standard error from these simulations by taking the standard deviation of the estimates.</li>
-<li>Calculate the confidence interval using the 2.5% and 97.5% quantiles in the replications</li>
-</ul>
-<p>However, in the bootstrap, we should draw the bootstrap samples the same way the sample was drawn from the population. Why might this not be the case in what we just did?</p>
-</div>
 </div>
 <div id="multiple-comparisons-and-f-test" class="section level2">
 <h2>Multiple comparisons and F-test</h2>
@@ -303,7 +392,8 @@ summary(lm(noise))</code></pre>
 <ol>
 <li id="fn1"><p>This uses the <a href="https://rstudio.github.io/DT/">DT</a> package to produce pretty interactive tables in the HTML.<a href="#fnref1">↩</a></p></li>
 <li id="fn2"><p>See the discussion in (Scientific method: Statistical errors)[<a href="http://www.nature.com/news/scientific-method-statistical-errors-1.14700" class="uri">http://www.nature.com/news/scientific-method-statistical-errors-1.14700</a>], <em>Nature</em>.<a href="#fnref2">↩</a></p></li>
-<li id="fn3"><p>This question is non-standard and idiosyncratic to the way I interpret research.<a href="#fnref3">↩</a></p></li>
+<li id="fn3"><p>Assuming, for simplicity, that <span class="math inline">\(H_0\)</span> and <span class="math inline">\(H_a\)</span> are the only hypotheses so that <span class="math inline">\(p(H_0) + p(H_a) = 1\)</span>.<a href="#fnref3">↩</a></p></li>
+<li id="fn4"><p>This question is non-standard and idiosyncratic to the way I interpret research.<a href="#fnref4">↩</a></p></li>
 </ol>
 </div>
 

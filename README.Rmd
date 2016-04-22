@@ -9,7 +9,10 @@ output:
 $$
 \DeclareMathOperator{\cor}{cor}
 \DeclareMathOperator{\cov}{cov}
+\DeclareMathOperator{\se}{se}
 \DeclareMathOperator{\quantile}{quantile}
+\renewcommand{\vec}[1]{\boldsymbol{#1}}
+\renewcommand{\mat}[1]{\boldsymbol{#1}}
 $$
 
 ## Instructions
@@ -42,7 +45,7 @@ only run code that has changed.
 knitr::opts_chunk$set(cache = TRUE, autodep = TRUE)
 ```
 
-## Problem 1
+## Nunn and Wantchekon AER 2011 example
 
 Let's run some regressions from 
 
@@ -78,7 +81,10 @@ The relevant variables in the data are:
 - Individual controls: `age`, `age2`, `male`, `urban_dum`, `education`, `occupation`, `religion`, `living_conditions`
 - District controls: `district_ethnic_frac`, `frac_ethnicity_in_district`
 - Country-fixed effects: `isocode`
-- 
+
+
+
+### Bivariate regression
 
 Run a regression of the Trust of Neighbors on Slave exports.
 This is Table 1, Model 1, witout any of the control variables.
@@ -88,6 +94,9 @@ mod1 <- lm(trust_neighbors ~ exports, data = nunn)
 
 <div class="bs-callout bs-callout-info">
 - Interpret the magnitude and statistical significance of the coefficient on `trust_neighbors`.
+- Plot the fitted values and confidence interval of the fitted values of regression vs. `exports`.
+- Plot the residuals of this regresion against the fitted values of the regression. Do they appear to have
+  constant variance? Are they approximately symmetric?
 - What is the null hypothesis of the t-test reported by `summary()`? Explain the meaning of the p-value.
   Be precise. Is the p-value the probability that the null hypothesis is correct?
 </div>
@@ -95,34 +104,79 @@ mod1 <- lm(trust_neighbors ~ exports, data = nunn)
 Frequentist statistics assigns no probabilities to hypotheses (parameter values).
 They are either true or false, but they are unknown. Only samples are random variables, and have an associated probability.
 But as scientists, we are generally interested in the probability that a hypothesis is correct.[^nature]
-This can be calculated using Bayes law as,
+The probability that the research hypothesis ($H_0$) is correct can be calculated with Bayes law,
 $$
-p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data})}
+p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)} = \frac{p(\text{data | H_a} p(H_a))}{p(\text{data})} .
 $$
-The p-value gives, teh The important missing piece of information is $p(! H_0)$, the probability that the null hypothesis is not correct, i.e. the probability that the null hypothesis is correct, which is the probability that the research hypothesis is incorrect.[^jeff]
+Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An important missing piece of information is the baseline or prior probabilty that the null hypothesis is true, $p(H_0)$, which is the complement of the probability that the research hypothesis is true, $p(H_0) = 1 - p(H_a)$,[^h0] [^jeff]
 
 <div class="bs-callout bs-callout-info">
-- If more than the p-value is required to make sense of the research findings, how does the article increase your belief
+- If more than the p-value is required to make sense of the research findings, what does the article do to increase your belief
   about $p(H_a)$?
 - Suppose you believed that NW were p-value hacking (which I don't think they are!). What part of Bayes law is that 
-  affecting?
+  affecting? If you think that someone is p-value hacking, then you are saying that they will always produce significant p-values regardless of whether the null or alternative hypotheses are true.
 </div>
 
 [^nature]: See the discussion in (Scientific method: Statistical errors)[http://www.nature.com/news/scientific-method-statistical-errors-1.14700], *Nature*.
 
 [^jeff]: This question is non-standard and idiosyncratic to the way I interpret research.
 
+[^h0]: Assuming, for simplicity, that $H_0$ and $H_a$ are the only hypotheses so that $p(H_0) + p(H_a) = 1$.
+
+In the models in Table 1, NW includes control variables to account for individual, district, and country-level 
+variables that may explain differences.
+
+### Multiple regression
+
 <div class="bs-callout bs-callout-info">
-What are the control variables that NW include in the models in Table 1?
-Run the model in Table 1, Regression 1.
-
-Does the R^2 match that in Table 1?
-
-Do the standard errors match those in Table 1? Any guesses why?
-
-Run the regression in Table 1, model 6. Why is it "log(1 + exports / pop)" instead of "log(exports / pop)"?
+- What are the control variables that NW include in the models in Table 1?
+- Run the model in Table 1, Regression 1 and report the results: coefficients, p-values, etc.
+- Interpret the coefficient on `exports`
+- How much does the coefficient change with the addition of control variables? What does that suggest?
+- Do the R^2 and number of observations match those reported in Table 1?
+- Calculate the fitted values of the regression by multiplying the $\beta$ vector and the $\mat{X}$ matrix.
+  Confirm that you get the same results as using `predict()`.
 </div>
 
+In this regression
+
+Run the regresssion 
+
+### Validity of the standard errors
+
+One of the assumptions necessary for OLS standard errors to be correct is homoskedasticity homoskedasticity (constant variance), and that the errors are uncorrelated.
+
+<div class="bs-collout"
+- How might that assumption be violated?
+- Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors?
+- Do the standard errors match those in Table 1? What sort of standard errors does the article use?
+</div>
+
+### log slave exports per capita
+
+<div>
+- Run the regression in Table 1, model 6, which uses "log(1 + exports / pop)" as a measure of slave exports.
+- Interpret the effect of this variable
+- Why is "log(1 + exports / pop)" used as the measure instead of "log(exports / pop)"?
+- Plot the fitted values of log(1 + exports / pop) and their confidence interval against "log(1 + exports / pop)" against the residuals of the controls only regression. Include the line, confidence intervals, and data points.
+- Plot the fitted values of exports / pop against the residuals of the controls only regression. Include the line, confidence intervals, and data points. How does this relationship differ from the one which used the level of slave exports with out taking the logarithm or adjusting for population?
+</div>
+
+### Sampling distribution of coefficients
+
+Let's understand what the confidence intervals mean in terms of the sampling distribution.
+Since we don't know the true parameter values for this, we will pretend that the OLS point estimates are
+the "true" population parameters.
+
+Given an OLS model with estimated $\hat{\beta}$ and $\hat{\sigma}$, and data, the function
+does `resampler_coef`,
+
+1. Sample $y^* \sim N(\hat{\beta} X, \hat{\sigma}^2)$
+2. Estimate OLS estimates $\tilde{y} = \beta^* X + $\varepsilon^*$
+3. Repeat steps 1--2, `iter` times, store $\beta^*$ for each iteration, and
+   return the estimates for all samples.
+   
+The distribution of the $\beta^*$ is a sampling distribution of the parameters.
 ```{r}
 resampler_coef <- function(mod, .data, iter = 1) {
   # Remove missing values
@@ -158,11 +212,102 @@ resampler_coef <- function(mod, .data, iter = 1) {
 }
 ```
 
-- Plot the distributions of the coefficients
-- Calculate the correlation matrix of the coefficients. How similar is it to that from `vcov`?
+Suppose that `mod_1_6` is the model containing the results of the model in Table 1, Model 6.
+Simulate the sampling distribution of the 
+```{r eval=FALSE}
+beta_dist <- resampler_coef(mod_1_6, nunn, iter = 1024)
+head(beta_dist)
+```
 
+<div class="bs-callout bs-callout-info">
+- Plot the distributions of the coefficients of 
+- Calculate the correlation matrix of the coefficients.
+  How similar is it to that returned from `vcov(mod)
+</div>
+
+### Bootstrapping
+
+What you just did is an example of parametric bootstrap.
+It is a parametric bootstrap because you drew data from an assumed model (the OLS model that you estimated).
+
+An alternative is a non-parametric bootstrap.
+In a non-parametric bootstrap, instead of drawing samples from model, we are going to redraw samples from the sample.
+
+![Head Exploding Gif](head-exploding-gif-tim-and-eric.gif)
+
+An analogy is that the sample is to the population as the bootstrap is to the sample.
+We are treating the sample distribution as an estimate of the populution distribution and then drawing samples from
+that estimated population distribution.
+
+To do the bootstrapping we will use the `bootstrap` function in the **tidyr** package.
+However, the [boot](https://cran.r-project.org/web/packages/boot/index.html) package supports many more advanced methods of bootstrapping.
+
+Let's start by drawing a single bootstrap replication.
+It is a sample of the same size as the original data, drawn from the data *with replacement*.
+```{r message=FALSE,results='hide'}
+nunn_bootstrapped <- bootstrap(nunn, 1)
+```
+
+So, in order to calculate boostrapped standard erorrs, we will need to draw a sample of 
+To get bootstrap standard errors, we draw `B` replications, run an  regression, and save the estimates. 
+```{r message=FALSE, results='hide'}
+beta_bs <- 
+  bootstrap(nunn, 1024) %>%
+    do(tidy(lm(trust_neighbors ~ exports, data = nunn)))
+```
+
+There are several ways to calculate standard errors from bootstraped replications.
+The following are two simple methods.
+
+1. Calculate the standard error from these simulations by taking the standard deviation of the estimates.
+   Suppose $\beta^{*b}_k$ is the estimated cofficient from replication $b \in 1:B$, and $\bar\tilde^{*}_k = (\sum \beta^{*b}_k) / B$.
+   Then the bootstrap standard error is,
+   $$
+   \se_k(\hat\beta_{k}) = \sqrt{\frac{1}{B - 1} \sum (\beta^{*b}_k - \bar\beta^{*b}_k)^2}
+   $$
+   The confidence interval is thus,
+   $$
+   \hat{\beta}_k \pm \se_{bs}(\hat\beta_k)
+   $$
+   Note that you use the estimate $\hat{\beta}_k$ from the original model, not the mean of the bootstrap estimates.
+   This method works well if the sampling distribution of $\beta_k$ is symmetric.
+
+2. The second method is to use the quantiles of the bootstap estimates.
+   E.g. a 95% confidence interval uses the 2.5% and 97.5% quantiles of the boostrap estimates.
+   This method allows for asymmetric confidence intervals. However, it takes more replications to get accurate 
+   values of extreme quantiles than it does to calculate a standard deviation.
+
+<div class="bs-callout bs-callout-info">
+- Estimate the bootstrapped confidence intervals using those two methods.
+- Compare the bootstrapped confidence intervals to the OLS confidence interval.
+</div>
+
+There are even more advanced methods such as the studentized bootstrap, and the adjusted boostrap percentile (BCa) methods
+included in `boot.ci`.
+
+For bootstrapped standard errors to be valid, the samples from the data need to be taken in the same way as the sample
+was taken from the population. 
+For example, in a time series it would be inappropriate to sample observations without accounting for their order.
+
+<div class="bs-callout bs-callout-info">
+- What is the population in this paper?
+- How was the sample drawn from this population?
+- In the previous examples, did we draw the sample in the same way as it was drawn from the population? What would
+  be a better way of drawing the bootstrapped samples? Try to implement it, and compare the differences.
+</div>
 
 ### F-test example
+
+An $F$-test tests the null hypthosis that several coefficients in the regression are all 0 vs. the alternative that 
+at least one of the coefficients is non-zero.
+
+$$
+\begin{aligned}[t]
+H_0: &\quad \beta_j = \dots = \beta_J = 0
+H_a: &\quad \text{at least one $\beta_k \neq 0$}
+\end{aligned}
+$$
+
 
 - Run F-tests of the multiple regression model vs. the model with no controls.
 - Run and interpet an F-test on some reasonable group of variables.
@@ -203,29 +348,6 @@ resampler_models <- function(mod, .data, iter = 1) {
   bind_rows(results)
 }
 ```
-
-### Bootstrap example
-
-Example of a single bootstrap replication. We draw N observations *with replacement* 
-from the original data.
-```{r message=FALSE,results='hide'}
-nunn_bootstrapped <- bootstrap(nunn, 1)
-```
-
-To get bootstrap standard errors, we draw `m` replications, run the regression, 
-and save the estimates. 
-```{r message=FALSE, results='hide'}
-bootstrap(nunn, 1024) %>%
-  do(tidy(lm(trust_neighbors ~ exports, data = nunn)))
-```
-
-There are several ways to calculate standard errors from bootstraped replications.
-
-- Calculate the standard error from these simulations by taking the standard deviation of the estimates.
-- Calculate the confidence interval using the 2.5% and 97.5% quantiles in the replications
-
-However, in the bootstrap, we should draw the bootstrap samples the same way the sample
-was drawn from the population. Why might this not be the case in what we just did? 
 
 ## Multiple comparisons and F-test
 
