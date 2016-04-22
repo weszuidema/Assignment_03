@@ -110,7 +110,8 @@ They are either true or false, but they are unknown. Only samples are random var
 But as scientists, we are generally interested in the probability that a hypothesis is correct.[^nature]
 The probability that the research hypothesis ($H_0$) is correct can be calculated with Bayes law,
 $$
-p(H_0 | \text{data}) = \frac{p(\text{data | H_0) p(H_0)}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)}
+p(H_0 | \text{data}) =
+\frac{p(\text{data} | H_0) p(H_0)}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)} = \frac{p(\text{data} | H_0) p(H_0)}{p(\text{data})}
 $$
 Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An important missing piece of information is the baseline or prior probabilty that the null hypothesis is true, $p(H_0)$, which is the complement of the probability that the research hypothesis is true, $p(H_0) = 1 - p(H_a)$,[^h0] [^jeff]
 

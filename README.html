@@ -192,7 +192,8 @@ library(&quot;DT&quot;)</code></pre>
 <div id="probablities-of-hypotheses" class="section level3">
 <h3>Probablities of Hypotheses</h3>
 <p>Frequentist statistics assigns no probabilities to hypotheses (parameter values). They are either true or false, but they are unknown. Only samples are random variables, and have an associated probability. But as scientists, we are generally interested in the probability that a hypothesis is correct.<a href="#fn2" class="footnoteRef" id="fnref2"><sup>2</sup></a> The probability that the research hypothesis (<span class="math inline">\(H_0\)</span>) is correct can be calculated with Bayes law, <span class="math display">\[
-p(H_0 | \text{data}) = \frac{p(\text{data | H_0) p(H_0)}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)}
+p(H_0 | \text{data}) =
+\frac{p(\text{data} | H_0) p(H_0)}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)} = \frac{p(\text{data} | H_0) p(H_0)}{p(\text{data})}
 \]</span> Working somewhat informally, the p-value gives <span class="math inline">\(p(\text{data} | H_0)\)</span>. An important missing piece of information is the baseline or prior probabilty that the null hypothesis is true, <span class="math inline">\(p(H_0)\)</span>, which is the complement of the probability that the research hypothesis is true, <span class="math inline">\(p(H_0) = 1 - p(H_a)\)</span>,<a href="#fn3" class="footnoteRef" id="fnref3"><sup>3</sup></a> <a href="#fn4" class="footnoteRef" id="fnref4"><sup>4</sup></a></p>
 <div class="bs-callout bs-callout-info">
 <ul>
