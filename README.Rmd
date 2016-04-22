@@ -101,18 +101,19 @@ mod1 <- lm(trust_neighbors ~ exports, data = nunn)
   Be precise. Is the p-value the probability that the null hypothesis is correct?
 </div>
 
+### Probablities of Hypotheses
+
 Frequentist statistics assigns no probabilities to hypotheses (parameter values).
 They are either true or false, but they are unknown. Only samples are random variables, and have an associated probability.
 But as scientists, we are generally interested in the probability that a hypothesis is correct.[^nature]
 The probability that the research hypothesis ($H_0$) is correct can be calculated with Bayes law,
 $$
-p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)} = \frac{p(\text{data | H_a} p(H_a))}{p(\text{data})} .
+p(H_0 | \text{data}) = \frac{p(\text{data | H_0) p(H_0)}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)}
 $$
 Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An important missing piece of information is the baseline or prior probabilty that the null hypothesis is true, $p(H_0)$, which is the complement of the probability that the research hypothesis is true, $p(H_0) = 1 - p(H_a)$,[^h0] [^jeff]
 
 <div class="bs-callout bs-callout-info">
-- If more than the p-value is required to make sense of the research findings, what does the article do to increase your belief
-  about $p(H_a)$?
+- If more than the p-value is required to make sense of the research findings, what does the article do to increase your belief about the research hypothesis, $p(H_a)$?
 - Suppose you believed that NW were p-value hacking (which I don't think they are!). What part of Bayes law is that 
   affecting? If you think that someone is p-value hacking, then you are saying that they will always produce significant p-values regardless of whether the null or alternative hypotheses are true.
 </div>
@@ -123,10 +124,11 @@ Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An import
 
 [^h0]: Assuming, for simplicity, that $H_0$ and $H_a$ are the only hypotheses so that $p(H_0) + p(H_a) = 1$.
 
-In the models in Table 1, NW includes control variables to account for individual, district, and country-level 
-variables that may explain differences.
 
 ### Multiple regression
+
+In the models in Table 1, NW includes control variables to account for individual, district, and country-level 
+variables that may explain differences.
 
 <div class="bs-callout bs-callout-info">
 - What are the control variables that NW include in the models in Table 1?
