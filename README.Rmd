@@ -3,6 +3,8 @@ title: "Assignment 03"
 output:
   html_document:
     keep_md: true
+    css: styles.css
+    self_contained: false
 ---
 $$
 \DeclareMathOperator{\cor}{cor}
@@ -28,6 +30,7 @@ library("foreign")
 library("dplyr")
 library("broom")
 library("ggplot2")
+library("DT")
 ```
 Since we are going to do some simulation, we shoudl set a seed, so the results are exactly replicable.
 ```{r}
@@ -41,37 +44,84 @@ knitr::opts_chunk$set(cache = TRUE, autodep = TRUE)
 
 ## Problem 1
 
-Let's run some regressions from Nunn and Wantchekon!
+Let's run some regressions from 
+
+> Nunn, Nathan and Leonard Wantchekon. 2011. "The Slave Trade and the Origins of Mistrust in Africa."	American Economic Review,
+> 101(7):3221-52. [doi:10.1257/aer.101.7.3221](https://dx.doi.org/10.1257/aer.101.7.3221)
+
+The replication data for the is available from its [AER site](https://dx.doi.org/10.1257/aer.101.7.3221), but the main
+dataset is included in this repository.
+Since the main dataset is a Stata `.dta` file load it using the `read.dta` function
+and convert it to a **dplyr** `tbl` so the `print` function produces nicer output.
 ```{r}
 nunn <- read.dta("Nunn_Wantchekon_AER_2011.dta") %>% tbl_df()
 ```
 
-- `trust_neighbors`: Trust of neighbors
-- `exports`: Slave exports in 1000s
-- `export_pop`: 
-- Individual controls: `age`, `age2`, `male`, `urban_dum`, `education`, `occupation`, `religion`, `living_conditions`
-- District controls: `district_ethnic_frac`, `frac_ethnicity_in_district`
-- Country-fixed effects `isocode`
-
-```{r}
-mod1 <- lm(trust_neighbors ~ exports, data = nunn) 
+There are many variables in this data.
+When `read.dta` converts a Stata data file the descriptions of the variables end up
+in an R [attribute](https://stat.ethz.ch/R-manual/R-devel/library/base/html/attributes.html) `"var.labels"`.
+Print out the variable lables to get the descriptions of the files[^datatable]
+```{r variable-labels,results = 'asis',cache=FALSE}
+data_frame(variable = names(nunn), description = attr(nunn, "var.labels")) %>%
+  datatable(class = 'cell-border stripe')
 ```
 
-Interpret the coefficient's magnitude and statistical significance.
 
-Some questions on p-values
+[^datatable]: This uses the [DT](https://rstudio.github.io/DT/) package to produce pretty interactive tables in the HTML.
 
-- What is the null hypothesis of the t-tests
-- Explain the meaning of the p-value
-- Is the p-value the probability that the null hypothesis is correct?
+In Table 1, NW run several models with Trust in Neighbors as an outcome variable,
+different measures of slave exports as the treatment variable, and the same set of controls variables.
+The relevant variables in the data are:
 
-What other variables does Nunn include? Include those in Table 1, Model 1. Run that regression.
+- `trust_neighbors`: Trust of neighbors
+- `exports`: Slave exports in 1000s
+- Individual controls: `age`, `age2`, `male`, `urban_dum`, `education`, `occupation`, `religion`, `living_conditions`
+- District controls: `district_ethnic_frac`, `frac_ethnicity_in_district`
+- Country-fixed effects: `isocode`
+- 
+
+Run a regression of the Trust of Neighbors on Slave exports.
+This is Table 1, Model 1, witout any of the control variables.
+```{r}
+mod1 <- lm(trust_neighbors ~ exports, data = nunn)
+```
+
+<div class="bs-callout bs-callout-info">
+- Interpret the magnitude and statistical significance of the coefficient on `trust_neighbors`.
+- What is the null hypothesis of the t-test reported by `summary()`? Explain the meaning of the p-value.
+  Be precise. Is the p-value the probability that the null hypothesis is correct?
+</div>
+
+Frequentist statistics assigns no probabilities to hypotheses (parameter values).
+They are either true or false, but they are unknown. Only samples are random variables, and have an associated probability.
+But as scientists, we are generally interested in the probability that a hypothesis is correct.[^nature]
+This can be calculated using Bayes law as,
+$$
+p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data})}
+$$
+The p-value gives, teh The important missing piece of information is $p(! H_0)$, the probability that the null hypothesis is not correct, i.e. the probability that the null hypothesis is correct, which is the probability that the research hypothesis is incorrect.[^jeff]
+
+<div class="bs-callout bs-callout-info">
+- If more than the p-value is required to make sense of the research findings, how does the article increase your belief
+  about $p(H_a)$?
+- Suppose you believed that NW were p-value hacking (which I don't think they are!). What part of Bayes law is that 
+  affecting?
+</div>
+
+[^nature]: See the discussion in (Scientific method: Statistical errors)[http://www.nature.com/news/scientific-method-statistical-errors-1.14700], *Nature*.
+
+[^jeff]: This question is non-standard and idiosyncratic to the way I interpret research.
+
+<div class="bs-callout bs-callout-info">
+What are the control variables that NW include in the models in Table 1?
+Run the model in Table 1, Regression 1.
 
 Does the R^2 match that in Table 1?
 
 Do the standard errors match those in Table 1? Any guesses why?
 
 Run the regression in Table 1, model 6. Why is it "log(1 + exports / pop)" instead of "log(exports / pop)"?
+</div>
 
 ```{r}
 resampler_coef <- function(mod, .data, iter = 1) {
