@@ -19,20 +19,43 @@ set.seed(1234)
 knitr::opts_chunk$set(cache = TRUE, autodep = TRUE)
 ```
 
-Problem 1
+--Bivariate Regression--
 
 ```{r}
 nunn <- read.dta("Nunn_Wantchekon_AER_2011.dta") %>% tbl_df()
-mod1 <- lm(trust_neighbors ~ exports + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn) 
+mod1 <- lm(trust_neighbors ~ exports, data = nunn)
 
 # str(nunn)
 # attr(nunn, "var.labels")
 ```
 
-Interpret the coefficient's magnitude and statistical significance.
-  The export of slaves is negatively correlated with modern levels of trust. We reject the null hypothesis at the .01 signifiance level. I can't assess the magnitude without knowing the units or effect size.
+- Interpret the coefficient's magnitude and statistical significance.
+The export of slaves is negatively correlated with modern levels of trust. We reject the null hypothesis at the .01 signifiance level. I can't assess the magnitude without knowing the units or effect size.
 
-Some questions on p-values
+- Plot the fitted values and confidence interval of the fitted values of regression vs. `exports`. 
+```{r}
+predict(mod1, interval = "confidence")
+
+mod1_aug <- augment(mod1, nunn)
+ggplot(mod1_aug, aes(x = exports, y = .fitted)) + geom_line() + geom_point() + 
+  geom_ribbon(aes(ymin = .fitted - 2 * .se.fit, ymax = .fitted + 2 * .se.fit, alpha = .1))
+
+ggplot(nunn, aes(x = exports, y = trust_neighbors)) + geom_smooth(method = "lm")
+```
+
+- Plot the residuals of this regresion against the fitted values of the regression. Do they appear to have constant variance? Are they approximately symmetric? 
+```{r}
+ggplot(mod1_aug, aes(y = .resid, x = .fitted)) + geom_point()
+```
+I dont' think they are symmetric because they are weighted toward the right, and the variance is not constant either because there is different variation around 1.8 than around 1.4.
+
+- What is the null hypothesis of the t-test reported by `summary()`? 
+```{r}
+t.test(nunn$trust_neighbors, nunn$exports)
+```
+alternative hypothesis: true difference in means is not equal to 0
+
+- Explain the meaning of the p-value. Be precise. Is the p-value the probability that the null hypothesis is correct?
 
     What is the null hypothesis of the t-tests?
       The null hypothesis is that the coefficient of "exports" is zero.
@@ -41,11 +64,25 @@ Some questions on p-values
     Is the p-value the probability that the null hypothesis is correct?
       No, it is not. The p value is only meaningful because it assumes the null hypothesis is true.
 
+Frequentist statistics assigns no probabilities to hypotheses (parameter values). They are either true or false, but they are unknown. Only samples are random variables, and have an associated probability. But as scientists, we are generally interested in the probability that a hypothesis is correct.[^nature] The probability that the research hypothesis ($H_0$) is correct can be calculated with Bayes law, $$ p(H_0 | \text{data}) = \frac{p(\text{data | H_0} p(H_0))}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)} = \frac{p(\text{data | H_a} p(H_a))}{p(\text{data})} . $$ Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An important missing piece of information is the baseline or prior probabilty that the null hypothesis is true, $p(H_0)$, which is the complement of the probability that the research hypothesis is true, $p(H_0) = 1 - p(H_a)$,[^h0] [^jeff]
+
+- If more than the p-value is required to make sense of the research findings, what does the article do to increase your belief about $p(H_a)$? 
+
+They control for many other factors that could be driving the outcome, like distance from the coast on other continents, which increases my belief in the alternative hypothesis being true.
+Grounding their hypotheses in previous, tested theories increases their plausibility and the likelihood that they are true.
+
+- Suppose you believed that NW were p-value hacking (which I don't think they are!). What part of Bayes law is that affecting? If you think that someone is p-value hacking, then you are saying that they will always produce significant p-values regardless of whether the null or alternative hypotheses are true. 
+
+They are ensuring the probability of observing that data for their alternative hypothesis is always 1, and therefore we should trust it less.
+
+--Multiple Regression--
+
 What other variables does Nunn include? Include those in Table 1, Model 1. Run that regression.
 
 ```{r}
 nunn <- mutate(nunn, exports_area = (exports / export_area))
 nunn <- mutate(nunn, exports_pop = (exports / export_pop))
+mod1 <- lm(trust_neighbors ~ exports + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn) 
 mod2 <- lm(trust_neighbors ~ exports_area + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn)
 mod3 <- lm(trust_neighbors ~ exports_pop + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn)
 mod4 <- lm(trust_neighbors ~ log(1 + exports) + age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode), data = nunn)
@@ -56,119 +93,38 @@ htmlreg(list(mod1, mod2, mod3, mod4, mod5, mod6), file = "regtable.html", stars 
 ```
 
 
-Does the R^2 match that in Table 1?
+- What are the control variables that NW include in the models in Table 1? 
+age + age2 + male + urban_dum + factor(occupation) + factor(religion) + factor(living_conditions) + factor(education) + district_ethnic_frac + frac_ethnicity_in_district + factor(isocode)
 
-Do the standard errors match those in Table 1? Any guesses why?
-
-Run the regression in Table 1, model 6. Why is it "log(1 + exports / pop)" instead of "log(exports / pop)"?
-
+- Run the model in Table 1, Regression 1 and report the results: coefficients, p-values, etc. 
+See code above
 ```{r}
-resampler_coef <- function(mod, .data, iter = 1) {
-  # Remove missing values
-  .data <- na.omit(.data)
-  # Coefficients
-  beta <- coef(mod)
-  # mod$terms contains the formula used in the regression
-  X <- model.matrix(mod$terms, data = .data)
-  # estimate of std. dev. of errors
-  sigma <- sqrt(sum(mod$residuals ^ 2) / mod$df.residual)
-  # This produces the same result
-  # sigma <- summary(mod1)$sigma  
-  # Number of observations
-  n <- nrow(X)
-  # Name of dependent variable
-  outcome_var_name <- all.vars(mod$terms)[1]
-  # List to save results
-  results <- vector(mode = "list", length = iter)
-  for (i in seq_len(iter)) {
-    # draw errors
-    errors <- rnorm(n, mean = 0, sd = sigma)
-    # create new outcome variable from errors
-    y <- X %*% beta + errors
-    # replace outcome variable
-    .data[[outcome_var_name]] <- y
-    # run regression
-    newmod <- lm(mod$terms, data = .data)
-    # Save coefficients as a data frame to the list
-    results[[i]] <- tidy(newmod) %>% mutate(.iter = i)
-  }
-  # Convert the list of data frames to a single data frame by stacking the iterations
-  bind_rows(results)
-}
+summary(mod1)
+```
+
+- Interpret the coefficient on `exports` 
+Exports have a statistically significant effect on trust of neighbors even when controls are included.
+
+- How much does the coefficient change with the addition of control variables? What does that suggest? 
+The coefficient doesn't change much, and it becomes more negative, so the presence of controls makes the effect of slave exports on trust of neighbors more pronounced.
+
+- Do the R^2 and number of observations match those reported in Table 1? 
+Yes
+
+- Calculate the fitted values of the regression by multiplying the $\beta$ vector and the $\mat{X}$ matrix. Confirm that you get the same results as using `predict()`. 
+```{r}
+predict(mod1, interval = "confidence") %>% head()
+
+
 ```
 
 
-    Plot the distributions of the coefficients
-    Calculate the correlation matrix of the coefficients. How similar is it to that from vcov?
-
-F-test example
-
-    Run F-tests of the multiple regression model vs. the model with no controls.
-    Run and interpet an F-test on some reasonable group of variables.
-
-F-test simulations
-
+- How would you create a plot that shows the predicted values of `trust_neighbors` as the value of `exports` changes? What is different about the multiple regression case than the bivariate case?
 ```{r}
-resampler_models <- function(mod, .data, iter = 1) {
-  # Remove missing values
-  .data <- na.omit(.data)
-  # Coefficients
-  beta <- coef(mod)
-  # mod$terms contains the formula used in the regression
-  X <- model.matrix(mod$terms, data = .data)
-  # estimate of std. dev. of errors
-  sigma <- sqrt(sum(mod$residuals ^ 2) / mod$df.residual)
-  # This produces the same result
-  # sigma <- summary(mod1)$sigma  
-  # Number of observations
-  n <- nrow(X)
-  # Name of dependent variable
-  outcome_var_name <- all.vars(mod$terms)[1]
-  # List to save results
-  results <- vector(mode = "list", length = iter)
-  for (i in seq_len(iter)) {
-    # draw errors
-    errors <- rnorm(n, mean = 0, sd = sigma)
-    # create new outcome variable from errors
-    y <- X %*% beta + errors
-    # replace outcome variable
-    .data[[outcome_var_name]] <- y
-    # run regression
-    newmod <- lm(mod$terms, data = .data)
-    # Save model stats as a data frame to the list
-    results[[i]] <- glimpse(newmod) %>% mutate(.iter = i)
-  }
-  # Convert the list of data frames to a single data frame by stacking the iterations
-  bind_rows(results)
-}
-```
-
-Bootstrap example
-
-```{r}
-nunn_bootstrapped <- bootstrap(nunn, 1)
-
-bootstrap(nunn, 1024) %>%
-  do(tidy(lm(trust_neighbors ~ exports, data = nunn)))
-```
-
-Example of a single bootstrap replication. We draw N observations with replacement from the original data.
-To get bootstrap standard errors, we draw m replications, run the regression, and save the estimates. 
-There are several ways to calculate standard errors from bootstraped replications.
-
-    Calculate the standard error from these simulations by taking the standard deviation of the estimates.
-    Calculate the confidence interval using the 2.5% and 97.5% quantiles in the replications
-
-However, in the bootstrap, we should draw the bootstrap samples the same way the sample was drawn from the population. Why might this not be the case in what we just did? 
-
-Multiple comparisons and F-test
-
-```{r}
-noise <- data.frame(matrix(rnorm(2100), nrow = 100, ncol = 21))
-summary(lm(noise))
+mod1_aug <- augment(mod1, nunn)
+ggplot(mod1, aes(x = exports, y = .fitted)) + geom_point()
 ```
 
 
-    How many variables have t-tests that are significant?
-    Is the F-test significant?
-    Explain the difference
+
+
