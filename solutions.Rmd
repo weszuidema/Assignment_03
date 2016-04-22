@@ -11,8 +11,10 @@ library("dplyr")
 library("broom")
 library("ggplot2")
 
+# Ensures results are identical each time you run the simulation
 set.seed(1234)
 
+# Ensures we don't have to rerun things that have already been run when we knitr
 knitr::opts_chunk$set(cache = TRUE, autodep = TRUE)
 ```
 
@@ -74,3 +76,78 @@ resampler_coef <- function(mod, .data, iter = 1) {
 }
 ```
 
+
+    Plot the distributions of the coefficients
+    Calculate the correlation matrix of the coefficients. How similar is it to that from vcov?
+
+F-test example
+
+    Run F-tests of the multiple regression model vs. the model with no controls.
+    Run and interpet an F-test on some reasonable group of variables.
+
+F-test simulations
+
+```{r}
+resampler_models <- function(mod, .data, iter = 1) {
+  # Remove missing values
+  .data <- na.omit(.data)
+  # Coefficients
+  beta <- coef(mod)
+  # mod$terms contains the formula used in the regression
+  X <- model.matrix(mod$terms, data = .data)
+  # estimate of std. dev. of errors
+  sigma <- sqrt(sum(mod$residuals ^ 2) / mod$df.residual)
+  # This produces the same result
+  # sigma <- summary(mod1)$sigma  
+  # Number of observations
+  n <- nrow(X)
+  # Name of dependent variable
+  outcome_var_name <- all.vars(mod$terms)[1]
+  # List to save results
+  results <- vector(mode = "list", length = iter)
+  for (i in seq_len(iter)) {
+    # draw errors
+    errors <- rnorm(n, mean = 0, sd = sigma)
+    # create new outcome variable from errors
+    y <- X %*% beta + errors
+    # replace outcome variable
+    .data[[outcome_var_name]] <- y
+    # run regression
+    newmod <- lm(mod$terms, data = .data)
+    # Save model stats as a data frame to the list
+    results[[i]] <- glimpse(newmod) %>% mutate(.iter = i)
+  }
+  # Convert the list of data frames to a single data frame by stacking the iterations
+  bind_rows(results)
+}
+```
+
+Bootstrap example
+
+```{r}
+nunn_bootstrapped <- bootstrap(nunn, 1)
+
+bootstrap(nunn, 1024) %>%
+  do(tidy(lm(trust_neighbors ~ exports, data = nunn)))
+```
+
+Example of a single bootstrap replication. We draw N observations with replacement from the original data.
+To get bootstrap standard errors, we draw m replications, run the regression, and save the estimates. 
+There are several ways to calculate standard errors from bootstraped replications.
+
+    Calculate the standard error from these simulations by taking the standard deviation of the estimates.
+    Calculate the confidence interval using the 2.5% and 97.5% quantiles in the replications
+
+However, in the bootstrap, we should draw the bootstrap samples the same way the sample was drawn from the population. Why might this not be the case in what we just did? 
+
+Multiple comparisons and F-test
+
+```{r}
+noise <- data.frame(matrix(rnorm(2100), nrow = 100, ncol = 21))
+summary(lm(noise))
+```
+
+
+    How many variables have t-tests that are significant?
+    Is the F-test significant?
+    Explain the difference
