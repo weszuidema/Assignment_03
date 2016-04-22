@@ -103,6 +103,20 @@ mod1 <- lm(trust_neighbors ~ exports, data = nunn)
   Be precise. Is the p-value the probability that the null hypothesis is correct?
 </div>
 
+Example of using `augment` for fitted values:
+
+```r
+augment(mod1, data_frame(exports = seq(min(nunn$exports, na.rm = TRUE), max(nunn$exports, na.rm = TRUE), length.out = 100)))
+```
+Example of plotting the confidence intervals
+
+```r
+ggplot() + geom_line(data = mod1_fitted, mapping = aes(x = exports, y = .fitted)) + geom_ribbon(data = mod1_fitted, mapping = aes(x = exports, y = .fitted, ymin = .fitted - 2 * .se.fit, ymax = .fitted + 2 * .se.fit), alpha = 0.3) + geom_point(data = nunn, aes(x = exports, y = trust_neighbors))
+```
+
+
+
+
 ### Probablities of Hypotheses
 
 Frequentist statistics assigns no probabilities to hypotheses (parameter values).
@@ -120,6 +134,8 @@ Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An import
 - Suppose you believed that NW were p-value hacking (which I don't think they are!). What part of Bayes law is that 
   affecting? If you think that someone is p-value hacking, then you are saying that they will always produce significant p-values regardless of whether the null or alternative hypotheses are true.
 </div>
+
+
 
 [^nature]: See the discussion in (Scientific method: Statistical errors)[http://www.nature.com/news/scientific-method-statistical-errors-1.14700], *Nature*.
 

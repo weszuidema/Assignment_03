@@ -159,7 +159,7 @@ library(&quot;DT&quot;)</code></pre>
 <h2>Nunn and Wantchekon AER 2011 example</h2>
 <p>Let’s run some regressions from</p>
 <blockquote>
-<p>Nunn, Nathan and Leonard Wantchekon. 2011. “The Slave Trade and the Origins of Mistrust in Africa.” American Economic Review, 101(7):3221-52. <a href="https://dx.doi.org/10.1257/aer.101.7.3221"><a href="doi:10.1257/aer.101.7.3221" class="uri">doi:10.1257/aer.101.7.3221</a></a></p>
+<p>Nunn, Nathan and Leonard Wantchekon. 2011. “The Slave Trade and the Origins of Mistrust in Africa.” American Economic Review, 101(7):3221-52. <a href="https://dx.doi.org/10.1257/aer.101.7.3221">doi:10.1257/aer.101.7.3221</a></p>
 </blockquote>
 <p>The replication data for the is available from its <a href="https://dx.doi.org/10.1257/aer.101.7.3221">AER site</a>, but the main dataset is included in this repository. Since the main dataset is a Stata <code>.dta</code> file load it using the <code>read.dta</code> function and convert it to a <strong>dplyr</strong> <code>tbl</code> so the <code>print</code> function produces nicer output.</p>
 <pre class="r"><code>nunn &lt;- read.dta(&quot;Nunn_Wantchekon_AER_2011.dta&quot;) %&gt;% tbl_df()</code></pre>
@@ -188,6 +188,10 @@ library(&quot;DT&quot;)</code></pre>
 <li>What is the null hypothesis of the t-test reported by <code>summary()</code>? Explain the meaning of the p-value. Be precise. Is the p-value the probability that the null hypothesis is correct?</li>
 </ul>
 </div>
+<p>Example of using <code>augment</code> for fitted values:</p>
+<pre class="r"><code>augment(mod1, data_frame(exports = seq(min(nunn$exports, na.rm = TRUE), max(nunn$exports, na.rm = TRUE), length.out = 100)))</code></pre>
+<p>Example of plotting the confidence intervals</p>
+<pre class="r"><code>ggplot() + geom_line(data = mod1_fitted, mapping = aes(x = exports, y = .fitted)) + geom_ribbon(data = mod1_fitted, mapping = aes(x = exports, y = .fitted, ymin = .fitted - 2 * .se.fit, ymax = .fitted + 2 * .se.fit), alpha = 0.3) + geom_point(data = nunn, aes(x = exports, y = trust_neighbors))</code></pre>
 </div>
 <div id="probablities-of-hypotheses" class="section level3">
 <h3>Probablities of Hypotheses</h3>
@@ -234,12 +238,8 @@ p(H_0 | \text{data}) =
 <div id="validity-of-the-standard-errors" class="section level3">
 <h3>Validity of the standard errors</h3>
 <p>One of the assumptions necessary for OLS standard errors to be correct is homoskedasticity homoskedasticity (constant variance), and that the errors are uncorrelated.</p>
-<div class="bs-collout"
-- How might that assumption be violated?
-- Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors?
-- Do the standard errors match those in Table 1? What sort of standard errors does the article use?
+&lt;div class=“bs-collout” - How might that assumption be violated? - Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors? - Do the standard errors match those in Table 1? What sort of standard errors does the article use?
 </div>
-
 </div>
 <div id="log-slave-exports-per-capita" class="section level3">
 <h3>log slave exports per capita</h3>

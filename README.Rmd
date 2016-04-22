@@ -101,6 +101,18 @@ mod1 <- lm(trust_neighbors ~ exports, data = nunn)
   Be precise. Is the p-value the probability that the null hypothesis is correct?
 </div>
 
+Example of using `augment` for fitted values:
+```{r eval=FALSE}
+augment(mod1, data_frame(exports = seq(min(nunn$exports, na.rm = TRUE), max(nunn$exports, na.rm = TRUE), length.out = 100)))
+```
+Example of plotting the confidence intervals
+```{r eval = FALSE}
+ggplot() + geom_line(data = mod1_fitted, mapping = aes(x = exports, y = .fitted)) + geom_ribbon(data = mod1_fitted, mapping = aes(x = exports, y = .fitted, ymin = .fitted - 2 * .se.fit, ymax = .fitted + 2 * .se.fit), alpha = 0.3) + geom_point(data = nunn, aes(x = exports, y = trust_neighbors))
+```
+
+
+
+
 ### Probablities of Hypotheses
 
 Frequentist statistics assigns no probabilities to hypotheses (parameter values).
@@ -118,6 +130,8 @@ Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An import
 - Suppose you believed that NW were p-value hacking (which I don't think they are!). What part of Bayes law is that 
   affecting? If you think that someone is p-value hacking, then you are saying that they will always produce significant p-values regardless of whether the null or alternative hypotheses are true.
 </div>
+
+
 
 [^nature]: See the discussion in (Scientific method: Statistical errors)[http://www.nature.com/news/scientific-method-statistical-errors-1.14700], *Nature*.
 
@@ -159,7 +173,7 @@ variables that may explain differences.
 
 One of the assumptions necessary for OLS standard errors to be correct is homoskedasticity homoskedasticity (constant variance), and that the errors are uncorrelated.
 
-<div class="bs-collout"
+<div class="bs-callout bs-callout-info">
 - How might that assumption be violated?
 - Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors?
 - Do the standard errors match those in Table 1? What sort of standard errors does the article use?
@@ -275,7 +289,7 @@ There are several ways to calculate standard errors from bootstraped replication
 The following are two simple methods.
 
 1. Calculate the standard error from these simulations by taking the standard deviation of the estimates.
-   Suppose $\beta^{*b}_k$ is the estimated cofficient from replication $b \in 1:B$, and $\bar\tilde^{*}_k = (\sum \beta^{*b}_k) / B$.
+   Suppose $\beta^{*b}_k$ is the estimated cofficient from replication $b \in 1:B$, and $\bar\beta^{*}_k = (\sum \beta^{*b}_k) / B$.
    Then the bootstrap standard error is,
    $$
    \se_k(\hat\beta_{k}) = \sqrt{\frac{1}{B - 1} \sum (\beta^{*b}_k - \bar\beta^{*b}_k)^2}
