@@ -8,7 +8,7 @@ $$
 \renewcommand{\mat}[1]{\boldsymbol{#1}}
 $$
 
-## Instructions
+Instructions
 
 1. [Fork this repository](https://help.github.com/articles/using-pull-requests/) to your GitHub account.
 2. Write your solutions in R Markdown in a file named `solutions.Rmd`.
@@ -17,8 +17,8 @@ pull request "Submission".
 
 To update your fork from the upstream repository:
 
-1. On your fork, e.g. `https://github.com/jrnold/Assignment_03` click on "New Pull reqest"
-2. Set your fork `jrnold/Assignment_03` as the base fork on the left, and `UW-POLS503/Assignment_03` as the head fork on the right. In both cases the branch will be master. This means, compare any chanes in the head fork that are not in the base fork. You will see differences between the `US-POLS503` repo and your fork. Click on "Create Pull Request", and if there are no issues, "Click Merge" A quick way is to use this link, but change the `jrnold` to your own username: `https://github.com/jrnold/Assignment_03/compare/gh-pages...UW-POLS503:gh-pages`.
+1. On your fork, e.g. `https://github.com/jrnold/Assignment_03` click on "New Pull request"
+2. Set your fork `jrnold/Assignment_03` as the base fork on the left, and `UW-POLS503/Assignment_03` as the head fork on the right. In both cases the branch will be master. This means, compare any canes in the head fork that are not in the base fork. You will see differences between the `US-POLS503` repository and your fork. Click on "Create Pull Request", and if there are no issues, "Click Merge" A quick way is to use this link, but change the `jrnold` to your own username: `https://github.com/jrnold/Assignment_03/compare/gh-pages...UW-POLS503:gh-pages`.
 
 We'll use these packages,
 
@@ -29,7 +29,7 @@ library("broom")
 library("ggplot2")
 library("DT")
 ```
-Since we are going to do some simulation, we shoudl set a seed, so the results are exactly replicable.
+Since we are going to do some simulation, we should set a seed, so the results are exactly replicable.
 
 ```r
 set.seed(1234)
@@ -41,7 +41,7 @@ only run code that has changed.
 knitr::opts_chunk$set(cache = TRUE, autodep = TRUE)
 ```
 
-## Nunn and Wantchekon AER 2011 example
+# Nunn and Wantchekon AER 2011 example
 
 Let's run some regressions from 
 
@@ -60,7 +60,7 @@ nunn <- read.dta("Nunn_Wantchekon_AER_2011.dta") %>% tbl_df()
 There are many variables in this data.
 When `read.dta` converts a Stata data file the descriptions of the variables end up
 in an R [attribute](https://stat.ethz.ch/R-manual/R-devel/library/base/html/attributes.html) `"var.labels"`.
-Print out the variable lables to get the descriptions of the files[^datatable]
+Print out the variable labels to get the descriptions of the files[^datatable]
 
 ```r
 data_frame(variable = names(nunn), description = attr(nunn, "var.labels")) %>%
@@ -69,7 +69,6 @@ data_frame(variable = names(nunn), description = attr(nunn, "var.labels")) %>%
 
 <!--html_preserve--><div id="htmlwidget-1137" style="width:100%;height:auto;" class="datatables html-widget"></div>
 <script type="application/json" data-for="htmlwidget-1137">{"x":{"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59"],["respno","ethnicity","murdock_name","isocode","region","district","townvill","location_id","trust_relatives","trust_neighbors","intra_group_trust","inter_group_trust","trust_local_council","ln_export_area","export_area","export_pop","ln_export_pop","age","age2","male","urban_dum","occupation","religion","living_conditions","education","near_dist","distsea","loc_murdock_name","loc_ln_export_area","local_council_performance","council_listen","corrupt_local_council","school_present","electricity_present","piped_water_present","sewage_present","health_clinic_present","district_ethnic_frac","frac_ethnicity_in_district","townvill_nonethnic_mean_exports","district_nonethnic_mean_exports","region_nonethnic_mean_exports","country_nonethnic_mean_exports","murdock_centr_dist_coast","centroid_lat","centroid_long","explorer_contact","railway_contact","dist_Saharan_node","dist_Saharan_line","malaria_ecology","v30","v33","fishing","exports","ln_exports","total_missions_area","ln_init_pop_density","cities_1400_dum"],["Respondent number in Afrobarometer dataset","Ethnicity name: from Afrobarometer q79","Ethnicity name: from Murdock","Country 3 digit iso code","Region: from Afrobarometer","District: from Afrobarometer","Town/village: from Afrobarometer","Unique location-of-repondent identifier - based on isocode region district townv","Trust of relatives: q84a","Trust of neighbors: q84b","Intra-group trust: q84d","Inter-group trust: q84c","Trust of local government council: q55d","Log [(total slave exports: Atlantic + Indian) / area (km^2)","(total slave exports: Atlantic + Indian) / area (km^2)","Exports divided by historic Murdock population","Ln (1+exports/Murdock historic population)","Age: q1","Age squared","Indicator for respondent being male: q101","Indicator for respondent living in urban area","Occupation categories: q95","Religion categories: q91","Living condition categories:q4b","Education categories: Afrobarometer q90","Current distance from coast 1000s kms","Historic distance from coast 1000s kms","Murdock identifier for the current location of the respondent","Slave exports measure based on current location of respondent","Perceived performance of local council: q68c","Does the local council listen: q62b","How much corruption in local council: q56c","Is there a school in the PSU: q116b","Is there electricity in the PSU: q116d","Is there piped water in the PSU: q116e","Is there sewage in the PSU: q116f","Is there a health clinic in the PSU: q116g","District-level ethnic fractionalization","Proportion of ethnic group in district","Avg slave exports of other ethnicities within town/village","Avg slave exports of other ethnicities within district","Avg slave exports of other ethnicities within region","Avg slave exports of other ethnicities within country","Historic distance of ethnicity's centroid from the coast (in kms)","Historic latitude of centroid of ethnic group","Historic longitude of centroid of ethnic group","Indicator for historic contact with European explorer","Indicator variable for historic integration into the colonial railway network","Historic distance of ethnicity's centroid from a centroid (town) in Saharan trad","Historic distance of ethnicity's centroid from a line (route) in Saharan trade (","Ethnic groups average malaria ecology measure","Pre-colonial settlement patterns of ethnicity: from Ethngraphic Atlas v30","Pre-colonial juris. hierarchy beyond the local community: Ethnographic Atlas v33","Pre-colonial reliance on fishing: Ethnographic Atlas v3","(Atlantic+Indian Exports)","ln(1+Atlantic+Indian Exports)","Total Catholic + Protestant mission per land area","Log population density during the colonial period - from Murdock","Indicator for existence of city among ethnic group in 1400"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> \u003c/th>\n      <th>variable\u003c/th>\n      <th>description\u003c/th>\n    \u003c/tr>\n  \u003c/thead>\n\u003c/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]},"callback":null,"filter":"none"},"evals":[],"jsHooks":[]}</script><!--/html_preserve-->
-
 
 [^datatable]: This uses the [DT](https://rstudio.github.io/DT/) package to produce pretty interactive tables in the HTML.
 
@@ -84,11 +83,10 @@ The relevant variables in the data are:
 - Country-fixed effects: `isocode`
 
 
-
-### Bivariate regression
+## Bivariate regression
 
 Run a regression of the Trust of Neighbors on Slave exports.
-This is Table 1, Model 1, witout any of the control variables.
+This is Table 1, Model 1, without any of the control variables.
 
 ```r
 mod1 <- lm(trust_neighbors ~ exports, data = nunn)
@@ -97,7 +95,7 @@ mod1 <- lm(trust_neighbors ~ exports, data = nunn)
 <div class="bs-callout bs-callout-info">
 - Interpret the magnitude and statistical significance of the coefficient on `trust_neighbors`.
 - Plot the fitted values and confidence interval of the fitted values of regression vs. `exports`.
-- Plot the residuals of this regresion against the fitted values of the regression. Do they appear to have
+- Plot the residuals of this regression against the fitted values of the regression. Do they appear to have
   constant variance? Are they approximately symmetric?
 - What is the null hypothesis of the t-test reported by `summary()`? Explain the meaning of the p-value.
   Be precise. Is the p-value the probability that the null hypothesis is correct?
@@ -115,9 +113,7 @@ ggplot() + geom_line(data = mod1_fitted, mapping = aes(x = exports, y = .fitted)
 ```
 
 
-
-
-### Probablities of Hypotheses
+## Probablities of Hypotheses
 
 Frequentist statistics assigns no probabilities to hypotheses (parameter values).
 They are either true or false, but they are unknown. Only samples are random variables, and have an associated probability.
@@ -127,15 +123,13 @@ $$
 p(H_0 | \text{data}) =
 \frac{p(\text{data} | H_0) p(H_0)}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)} = \frac{p(\text{data} | H_0) p(H_0)}{p(\text{data})}
 $$
-Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An important missing piece of information is the baseline or prior probabilty that the null hypothesis is true, $p(H_0)$, which is the complement of the probability that the research hypothesis is true, $p(H_0) = 1 - p(H_a)$,[^h0] [^jeff]
+Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An important missing piece of information is the baseline or prior probability that the null hypothesis is true, $p(H_0)$, which is the complement of the probability that the research hypothesis is true, $p(H_0) = 1 - p(H_a)$,[^h0] [^jeff]
 
 <div class="bs-callout bs-callout-info">
 - If more than the p-value is required to make sense of the research findings, what does the article do to increase your belief about the research hypothesis, $p(H_a)$?
 - Suppose you believed that NW were p-value hacking (which I don't think they are!). What part of Bayes law is that 
   affecting? If you think that someone is p-value hacking, then you are saying that they will always produce significant p-values regardless of whether the null or alternative hypotheses are true.
 </div>
-
-
 
 [^nature]: See the discussion in (Scientific method: Statistical errors)[http://www.nature.com/news/scientific-method-statistical-errors-1.14700], *Nature*.
 
@@ -144,7 +138,7 @@ Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An import
 [^h0]: Assuming, for simplicity, that $H_0$ and $H_a$ are the only hypotheses so that $p(H_0) + p(H_a) = 1$.
 
 
-### Multiple regression
+## Multiple regression
 
 In the models in Table 1, NW includes control variables to account for individual, district, and country-level 
 variables that may explain differences.
@@ -164,7 +158,7 @@ variables that may explain differences.
 ### Understanding Multiple Regression
 
 <div class="bs-callout bs-callout-info">
-- Run the following regresssions
+- Run the following regressions
     1. Run the regression of `trust_neighbors` on the controls. Save the residuals
     2. Run the regression of `exports` on the controls. Save the residuals
     3. Regression the residuals from regression 1 on the residuals from regression 2.
@@ -173,7 +167,7 @@ variables that may explain differences.
 </div>
 
 
-### Validity of the standard errors
+## Validity of the standard errors
 
 One of the assumptions necessary for OLS standard errors to be correct is homoskedasticity homoskedasticity (constant variance), and that the errors are uncorrelated.
 
@@ -183,7 +177,8 @@ One of the assumptions necessary for OLS standard errors to be correct is homosk
 - Do the standard errors match those in Table 1? What sort of standard errors does the article use?
 </div>
 
-### log slave exports per capita
+
+## Regressions with log slave exports per capita
 
 <div>
 - Run the regression in Table 1, model 6, which uses "log(1 + exports / pop)" as a measure of slave exports.
@@ -193,7 +188,8 @@ One of the assumptions necessary for OLS standard errors to be correct is homosk
 - Plot the fitted values of exports / pop against the residuals of the controls only regression. Include the line, confidence intervals, and data points. How does this relationship differ from the one which used the level of slave exports with out taking the logarithm or adjusting for population?
 </div>
 
-### Sampling distribution of coefficients
+
+## Sampling distribution of OLS coefficients
 
 Let's understand what the confidence intervals mean in terms of the sampling distribution.
 Since we don't know the true parameter values for this, we will pretend that the OLS point estimates are
@@ -260,7 +256,7 @@ head(beta_dist)
 
 TODO: clarify this
 
-### Bootstrapping
+## Bootstrapping
 
 What you just did is an example of parametric bootstrap.
 It is a parametric bootstrap because you drew data from an assumed model (the OLS model that you estimated).
@@ -271,7 +267,7 @@ In a non-parametric bootstrap, instead of drawing samples from model, we are goi
 ![Head Exploding Gif](head-exploding-gif-tim-and-eric.gif)
 
 An analogy is that the sample is to the population as the bootstrap is to the sample.
-We are treating the sample distribution as an estimate of the populution distribution and then drawing samples from
+We are treating the sample distribution as an estimate of the population distribution and then drawing samples from
 that estimated population distribution.
 
 To do the bootstrapping we will use the `bootstrap` function in the **tidyr** package.
@@ -284,7 +280,7 @@ It is a sample of the same size as the original data, drawn from the data *with 
 nunn_bootstrapped <- bootstrap(nunn, 1)
 ```
 
-So, in order to calculate boostrapped standard erorrs, we will need to draw a sample of 
+So, in order to calculate bootstrap standard errors, we will need to draw a sample of 
 To get bootstrap standard errors, we draw `B` replications, run an  regression, and save the estimates. 
 
 ```r
@@ -293,11 +289,11 @@ beta_bs <-
     do(tidy(lm(trust_neighbors ~ exports, data = nunn)))
 ```
 
-There are several ways to calculate standard errors from bootstraped replications.
+There are several ways to calculate standard errors from the bootstrap replications.
 The following are two simple methods.
 
 1. Calculate the standard error from these simulations by taking the standard deviation of the estimates.
-   Suppose $\beta^{*b}_k$ is the estimated cofficient from replication $b \in 1:B$, and $\bar\beta^{*}_k = (\sum \beta^{*b}_k) / B$.
+   Suppose $\beta^{*b}_k$ is the estimated coefficient from replication $b \in 1:B$, and $\bar\beta^{*}_k = (\sum \beta^{*b}_k) / B$.
    Then the bootstrap standard error is,
    $$
    \se_k(\hat\beta_{k}) = \sqrt{\frac{1}{B - 1} \sum (\beta^{*b}_k - \bar\beta^{*b}_k)^2}
@@ -309,8 +305,8 @@ The following are two simple methods.
    Note that you use the estimate $\hat{\beta}_k$ from the original model, not the mean of the bootstrap estimates.
    This method works well if the sampling distribution of $\beta_k$ is symmetric.
 
-2. The second method is to use the quantiles of the bootstap estimates.
-   E.g. a 95% confidence interval uses the 2.5% and 97.5% quantiles of the boostrap estimates.
+2. The second method is to use the quantiles of the bootstrap estimates.
+   E.g. a 95% confidence interval uses the 2.5% and 97.5% quantiles of the bootstrap estimates.
    This method allows for asymmetric confidence intervals. However, it takes more replications to get accurate 
    values of extreme quantiles than it does to calculate a standard deviation.
 
@@ -319,7 +315,7 @@ The following are two simple methods.
 - Compare the bootstrapped confidence intervals to the OLS confidence interval.
 </div>
 
-There are even more advanced methods such as the studentized bootstrap, and the adjusted boostrap percentile (BCa) methods
+There are even more advanced methods such as the studentized bootstrap, and the adjusted bootstrap percentile (BCa) methods
 included in `boot.ci`.
 
 For bootstrapped standard errors to be valid, the samples from the data need to be taken in the same way as the sample
@@ -333,11 +329,11 @@ For example, in a time series it would be inappropriate to sample observations w
   be a better way of drawing the bootstrapped samples? Try to implement it, and compare the differences.
 </div>
 
-### F-test example
+## F-test example
 
 TODO: Fix this
 
-An $F$-test tests the null hypthosis that several coefficients in the regression are all 0 vs. the alternative that 
+An $F$-test tests the null hypothesis that several coefficients in the regression are all 0 vs. the alternative that 
 at least one of the coefficients is non-zero.
 
 $$
@@ -348,9 +344,19 @@ H_a: &\quad \text{at least one $\beta_k \neq 0$}
 $$
 
 - Run F-tests of the multiple regression model vs. the model with no controls.
-- Run and interpet an F-test on some reasonable group of variables.
+- Run and interpret an F-test on some reasonable group of variables.
 
-F-test simulations
+### F-test simulations
+
+To better understand the F-test, let's run some simulations. 
+
+First, we need to simulate data from the null hypothesis.
+In the null hypothesis, $H_0 = 0$ for all control variables.
+
+1. Simulate $\tilde{\varepsilon}$ from $N(0, \hat{\sigma}^2)$
+2. Run the regression
+2. Calculate the F-statistic
+
 
 
 ```r
@@ -388,7 +394,9 @@ resampler_models <- function(mod, .data, iter = 1) {
 }
 ```
 
-## Multiple comparisons and the F-test
+# Multiple comparisons and the F-test
+
+This question compares an F-test to running multiple t-tests
 
 
 ```r

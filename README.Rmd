@@ -5,6 +5,7 @@ output:
     keep_md: true
     css: styles.css
     self_contained: false
+    number_sections: true
 ---
 $$
 \DeclareMathOperator{\cor}{cor}
@@ -15,7 +16,7 @@ $$
 \renewcommand{\mat}[1]{\boldsymbol{#1}}
 $$
 
-## Instructions
+Instructions
 
 1. [Fork this repository](https://help.github.com/articles/using-pull-requests/) to your GitHub account.
 2. Write your solutions in R Markdown in a file named `solutions.Rmd`.
@@ -24,8 +25,8 @@ pull request "Submission".
 
 To update your fork from the upstream repository:
 
-1. On your fork, e.g. `https://github.com/jrnold/Assignment_03` click on "New Pull reqest"
-2. Set your fork `jrnold/Assignment_03` as the base fork on the left, and `UW-POLS503/Assignment_03` as the head fork on the right. In both cases the branch will be master. This means, compare any chanes in the head fork that are not in the base fork. You will see differences between the `US-POLS503` repo and your fork. Click on "Create Pull Request", and if there are no issues, "Click Merge" A quick way is to use this link, but change the `jrnold` to your own username: `https://github.com/jrnold/Assignment_03/compare/gh-pages...UW-POLS503:gh-pages`.
+1. On your fork, e.g. `https://github.com/jrnold/Assignment_03` click on "New Pull request"
+2. Set your fork `jrnold/Assignment_03` as the base fork on the left, and `UW-POLS503/Assignment_03` as the head fork on the right. In both cases the branch will be master. This means, compare any canes in the head fork that are not in the base fork. You will see differences between the `US-POLS503` repository and your fork. Click on "Create Pull Request", and if there are no issues, "Click Merge" A quick way is to use this link, but change the `jrnold` to your own username: `https://github.com/jrnold/Assignment_03/compare/gh-pages...UW-POLS503:gh-pages`.
 
 We'll use these packages,
 ```{r message=FALSE}
@@ -35,7 +36,7 @@ library("broom")
 library("ggplot2")
 library("DT")
 ```
-Since we are going to do some simulation, we shoudl set a seed, so the results are exactly replicable.
+Since we are going to do some simulation, we should set a seed, so the results are exactly replicable.
 ```{r}
 set.seed(1234)
 ```
@@ -45,7 +46,7 @@ only run code that has changed.
 knitr::opts_chunk$set(cache = TRUE, autodep = TRUE)
 ```
 
-## Nunn and Wantchekon AER 2011 example
+# Nunn and Wantchekon AER 2011 example
 
 Let's run some regressions from 
 
@@ -63,12 +64,11 @@ nunn <- read.dta("Nunn_Wantchekon_AER_2011.dta") %>% tbl_df()
 There are many variables in this data.
 When `read.dta` converts a Stata data file the descriptions of the variables end up
 in an R [attribute](https://stat.ethz.ch/R-manual/R-devel/library/base/html/attributes.html) `"var.labels"`.
-Print out the variable lables to get the descriptions of the files[^datatable]
+Print out the variable labels to get the descriptions of the files[^datatable]
 ```{r variable-labels,results = 'asis',cache=FALSE}
 data_frame(variable = names(nunn), description = attr(nunn, "var.labels")) %>%
   datatable(class = 'cell-border stripe')
 ```
-
 
 [^datatable]: This uses the [DT](https://rstudio.github.io/DT/) package to produce pretty interactive tables in the HTML.
 
@@ -83,11 +83,10 @@ The relevant variables in the data are:
 - Country-fixed effects: `isocode`
 
 
-
-### Bivariate regression
+## Bivariate regression
 
 Run a regression of the Trust of Neighbors on Slave exports.
-This is Table 1, Model 1, witout any of the control variables.
+This is Table 1, Model 1, without any of the control variables.
 ```{r}
 mod1 <- lm(trust_neighbors ~ exports, data = nunn)
 ```
@@ -95,7 +94,7 @@ mod1 <- lm(trust_neighbors ~ exports, data = nunn)
 <div class="bs-callout bs-callout-info">
 - Interpret the magnitude and statistical significance of the coefficient on `trust_neighbors`.
 - Plot the fitted values and confidence interval of the fitted values of regression vs. `exports`.
-- Plot the residuals of this regresion against the fitted values of the regression. Do they appear to have
+- Plot the residuals of this regression against the fitted values of the regression. Do they appear to have
   constant variance? Are they approximately symmetric?
 - What is the null hypothesis of the t-test reported by `summary()`? Explain the meaning of the p-value.
   Be precise. Is the p-value the probability that the null hypothesis is correct?
@@ -111,9 +110,7 @@ ggplot() + geom_line(data = mod1_fitted, mapping = aes(x = exports, y = .fitted)
 ```
 
 
-
-
-### Probablities of Hypotheses
+## Probablities of Hypotheses
 
 Frequentist statistics assigns no probabilities to hypotheses (parameter values).
 They are either true or false, but they are unknown. Only samples are random variables, and have an associated probability.
@@ -123,15 +120,13 @@ $$
 p(H_0 | \text{data}) =
 \frac{p(\text{data} | H_0) p(H_0)}{p(\text{data} | H_a) p(H_a) + p(\text{data} | H_0) p(H_0)} = \frac{p(\text{data} | H_0) p(H_0)}{p(\text{data})}
 $$
-Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An important missing piece of information is the baseline or prior probabilty that the null hypothesis is true, $p(H_0)$, which is the complement of the probability that the research hypothesis is true, $p(H_0) = 1 - p(H_a)$,[^h0] [^jeff]
+Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An important missing piece of information is the baseline or prior probability that the null hypothesis is true, $p(H_0)$, which is the complement of the probability that the research hypothesis is true, $p(H_0) = 1 - p(H_a)$,[^h0] [^jeff]
 
 <div class="bs-callout bs-callout-info">
 - If more than the p-value is required to make sense of the research findings, what does the article do to increase your belief about the research hypothesis, $p(H_a)$?
 - Suppose you believed that NW were p-value hacking (which I don't think they are!). What part of Bayes law is that 
   affecting? If you think that someone is p-value hacking, then you are saying that they will always produce significant p-values regardless of whether the null or alternative hypotheses are true.
 </div>
-
-
 
 [^nature]: See the discussion in (Scientific method: Statistical errors)[http://www.nature.com/news/scientific-method-statistical-errors-1.14700], *Nature*.
 
@@ -140,7 +135,7 @@ Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An import
 [^h0]: Assuming, for simplicity, that $H_0$ and $H_a$ are the only hypotheses so that $p(H_0) + p(H_a) = 1$.
 
 
-### Multiple regression
+## Multiple regression
 
 In the models in Table 1, NW includes control variables to account for individual, district, and country-level 
 variables that may explain differences.
@@ -160,7 +155,7 @@ variables that may explain differences.
 ### Understanding Multiple Regression
 
 <div class="bs-callout bs-callout-info">
-- Run the following regresssions
+- Run the following regressions
     1. Run the regression of `trust_neighbors` on the controls. Save the residuals
     2. Run the regression of `exports` on the controls. Save the residuals
     3. Regression the residuals from regression 1 on the residuals from regression 2.
@@ -169,7 +164,7 @@ variables that may explain differences.
 </div>
 
 
-### Validity of the standard errors
+## Validity of the standard errors
 
 One of the assumptions necessary for OLS standard errors to be correct is homoskedasticity homoskedasticity (constant variance), and that the errors are uncorrelated.
 
@@ -179,7 +174,8 @@ One of the assumptions necessary for OLS standard errors to be correct is homosk
 - Do the standard errors match those in Table 1? What sort of standard errors does the article use?
 </div>
 
-### log slave exports per capita
+
+## Regressions with log slave exports per capita
 
 <div>
 - Run the regression in Table 1, model 6, which uses "log(1 + exports / pop)" as a measure of slave exports.
@@ -189,7 +185,8 @@ One of the assumptions necessary for OLS standard errors to be correct is homosk
 - Plot the fitted values of exports / pop against the residuals of the controls only regression. Include the line, confidence intervals, and data points. How does this relationship differ from the one which used the level of slave exports with out taking the logarithm or adjusting for population?
 </div>
 
-### Sampling distribution of coefficients
+
+## Sampling distribution of OLS coefficients
 
 Let's understand what the confidence intervals mean in terms of the sampling distribution.
 Since we don't know the true parameter values for this, we will pretend that the OLS point estimates are
@@ -254,7 +251,7 @@ head(beta_dist)
 
 TODO: clarify this
 
-### Bootstrapping
+## Bootstrapping
 
 What you just did is an example of parametric bootstrap.
 It is a parametric bootstrap because you drew data from an assumed model (the OLS model that you estimated).
@@ -265,7 +262,7 @@ In a non-parametric bootstrap, instead of drawing samples from model, we are goi
 ![Head Exploding Gif](head-exploding-gif-tim-and-eric.gif)
 
 An analogy is that the sample is to the population as the bootstrap is to the sample.
-We are treating the sample distribution as an estimate of the populution distribution and then drawing samples from
+We are treating the sample distribution as an estimate of the population distribution and then drawing samples from
 that estimated population distribution.
 
 To do the bootstrapping we will use the `bootstrap` function in the **tidyr** package.
@@ -277,7 +274,7 @@ It is a sample of the same size as the original data, drawn from the data *with 
 nunn_bootstrapped <- bootstrap(nunn, 1)
 ```
 
-So, in order to calculate boostrapped standard erorrs, we will need to draw a sample of 
+So, in order to calculate bootstrap standard errors, we will need to draw a sample of 
 To get bootstrap standard errors, we draw `B` replications, run an  regression, and save the estimates. 
 ```{r message=FALSE, results='hide'}
 beta_bs <- 
@@ -285,11 +282,11 @@ beta_bs <-
     do(tidy(lm(trust_neighbors ~ exports, data = nunn)))
 ```
 
-There are several ways to calculate standard errors from bootstraped replications.
+There are several ways to calculate standard errors from the bootstrap replications.
 The following are two simple methods.
 
 1. Calculate the standard error from these simulations by taking the standard deviation of the estimates.
-   Suppose $\beta^{*b}_k$ is the estimated cofficient from replication $b \in 1:B$, and $\bar\beta^{*}_k = (\sum \beta^{*b}_k) / B$.
+   Suppose $\beta^{*b}_k$ is the estimated coefficient from replication $b \in 1:B$, and $\bar\beta^{*}_k = (\sum \beta^{*b}_k) / B$.
    Then the bootstrap standard error is,
    $$
    \se_k(\hat\beta_{k}) = \sqrt{\frac{1}{B - 1} \sum (\beta^{*b}_k - \bar\beta^{*b}_k)^2}
@@ -301,8 +298,8 @@ The following are two simple methods.
    Note that you use the estimate $\hat{\beta}_k$ from the original model, not the mean of the bootstrap estimates.
    This method works well if the sampling distribution of $\beta_k$ is symmetric.
 
-2. The second method is to use the quantiles of the bootstap estimates.
-   E.g. a 95% confidence interval uses the 2.5% and 97.5% quantiles of the boostrap estimates.
+2. The second method is to use the quantiles of the bootstrap estimates.
+   E.g. a 95% confidence interval uses the 2.5% and 97.5% quantiles of the bootstrap estimates.
    This method allows for asymmetric confidence intervals. However, it takes more replications to get accurate 
    values of extreme quantiles than it does to calculate a standard deviation.
 
@@ -311,7 +308,7 @@ The following are two simple methods.
 - Compare the bootstrapped confidence intervals to the OLS confidence interval.
 </div>
 
-There are even more advanced methods such as the studentized bootstrap, and the adjusted boostrap percentile (BCa) methods
+There are even more advanced methods such as the studentized bootstrap, and the adjusted bootstrap percentile (BCa) methods
 included in `boot.ci`.
 
 For bootstrapped standard errors to be valid, the samples from the data need to be taken in the same way as the sample
@@ -325,11 +322,11 @@ For example, in a time series it would be inappropriate to sample observations w
   be a better way of drawing the bootstrapped samples? Try to implement it, and compare the differences.
 </div>
 
-### F-test example
+## F-test example
 
 TODO: Fix this
 
-An $F$-test tests the null hypthosis that several coefficients in the regression are all 0 vs. the alternative that 
+An $F$-test tests the null hypothesis that several coefficients in the regression are all 0 vs. the alternative that 
 at least one of the coefficients is non-zero.
 
 $$
@@ -340,9 +337,19 @@ H_a: &\quad \text{at least one $\beta_k \neq 0$}
 $$
 
 - Run F-tests of the multiple regression model vs. the model with no controls.
-- Run and interpet an F-test on some reasonable group of variables.
+- Run and interpret an F-test on some reasonable group of variables.
 
-F-test simulations
+### F-test simulations
+
+To better understand the F-test, let's run some simulations. 
+
+First, we need to simulate data from the null hypothesis.
+In the null hypothesis, $H_0 = 0$ for all control variables.
+
+1. Simulate $\tilde{\varepsilon}$ from $N(0, \hat{\sigma}^2)$
+2. Run the regression
+2. Calculate the F-statistic
+
 
 ```{r}
 resampler_models <- function(mod, .data, iter = 1) {
@@ -379,7 +386,9 @@ resampler_models <- function(mod, .data, iter = 1) {
 }
 ```
 
-## Multiple comparisons and the F-test
+# Multiple comparisons and the F-test
+
+This question compares an F-test to running multiple t-tests
 
 ```{r results='hide'}
 noise <- data.frame(matrix(rnorm(2100), nrow = 100, ncol = 21))
