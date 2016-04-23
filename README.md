@@ -1,12 +1,4 @@
 # Assignment 03
-$$
-\DeclareMathOperator{\cor}{cor}
-\DeclareMathOperator{\cov}{cov}
-\DeclareMathOperator{\se}{se}
-\DeclareMathOperator{\quantile}{quantile}
-\renewcommand{\vec}[1]{\boldsymbol{#1}}
-\renewcommand{\mat}[1]{\boldsymbol{#1}}
-$$
 
 Instructions
 
@@ -74,7 +66,7 @@ data_frame(variable = names(nunn), description = attr(nunn, "var.labels")) %>%
 
 In Table 1, NW run several models with Trust in Neighbors as an outcome variable,
 different measures of slave exports as the treatment variable, and the same set of controls variables.
-The relevant variables in the data are:
+Some of the relevant variables in the data are:
 
 - `trust_neighbors`: Trust of neighbors
 - `exports`: Slave exports in 1000s
@@ -159,11 +151,28 @@ variables that may explain differences.
 
 <div class="bs-callout bs-callout-info">
 - Run the following regressions
-    1. Run the regression of `trust_neighbors` on the controls. Save the residuals
-    2. Run the regression of `exports` on the controls. Save the residuals
-    3. Regression the residuals from regression 1 on the residuals from regression 2.
-- How does the coefficient in regression 3 compare the the coefficient on `exports` from the regression in Table 1, Model 6?
+    1. Regress regression of `trust_neighbors` on the controls.
+        ```r
+        lm(trust_neighbors ~ age + age2 +
+           male + urban_dum + factor(education) + 
+           factor(occupation) + factor(religion) +
+           factor(living_conditions) + district_ethnic_frac +
+           frac_ethnicity_in_district + isocode, data = nunn)
+        ```
+        Save the residuals.
+    2. Run the regression of `ln_export_pop` on the controls. Save the residuals
+        ```r
+        lm(ln_export_pop ~ age + age2 +
+           male + urban_dum + factor(education) + 
+           factor(occupation) + factor(religion) +
+           factor(living_conditions) + district_ethnic_frac +
+           frac_ethnicity_in_district + isocode, data = nunn)
+        ```
+        Save the residuals.
+    3. Regress the residuals from 1. on the residuals on 2.
+- How does the coefficient from regression 3 compare the the coefficient on `exports` from the regression in Table 1, Model 6?
     What does that say about what multiple regression is doing?
+- Are the steps 
 </div>
 
 
@@ -331,8 +340,6 @@ For example, in a time series it would be inappropriate to sample observations w
 
 ## F-test example
 
-TODO: Fix this
-
 An $F$-test tests the null hypothesis that several coefficients in the regression are all 0 vs. the alternative that 
 at least one of the coefficients is non-zero.
 
@@ -343,7 +350,8 @@ H_a: &\quad \text{at least one $\beta_k \neq 0$}
 \end{aligned}
 $$
 
-- Run F-tests of the multiple regression model vs. the model with no controls.
+To run an F-test in R, we use the `anova()` function.
+
 - Run and interpret an F-test on some reasonable group of variables.
 
 ### F-test simulations
