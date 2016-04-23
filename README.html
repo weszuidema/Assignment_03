@@ -25,6 +25,7 @@
 <link href="README_files/datatables-default-1.10.7/dataTables.extra.css" rel="stylesheet" />
 <link href="README_files/datatables-default-1.10.7/jquery.dataTables.min.css" rel="stylesheet" />
 
+
 <style type="text/css">code{white-space: pre;}</style>
 <link rel="stylesheet"
       href="README_files/highlight/default.css"
@@ -114,6 +115,28 @@ $(document).ready(function () {
 
 
 
+$$
+\DeclareMathOperator{\E}{E}
+\DeclareMathOperator{\mean}{mean}
+\DeclareMathOperator{\Var}{Var}
+\DeclareMathOperator{\Cov}{Cov}
+\DeclareMathOperator{\Cor}{Cor}
+\DeclareMathOperator{\Bias}{Bias}
+\DeclareMathOperator{\MSE}{MSE}
+\DeclareMathOperator{\sd}{sd}
+\DeclareMathOperator{\se}{se}
+\DeclareMathOperator{\rank}{rank}
+\DeclareMathOperator*{\argmin}{arg\,min}
+\DeclareMathOperator*{\argmax}{arg\,max}
+
+\newcommand{\mat}[1]{\boldsymbol{#1}}
+\newcommand{\vec}[1]{\boldsymbol{#1}}
+\newcommand{\T}{'}
+
+\newcommand{\distr}[1]{\mathcal{#1}}
+\newcommand{\dnorm}{\distr{N}}
+\newcommand{\dmvnorm}[1]{\distr{N}_{#1}}
+$$
 
 <div class="fluid-row" id="header">
 
@@ -124,14 +147,6 @@ $(document).ready(function () {
 </div>
 
 
-<p><span class="math display">\[
-\DeclareMathOperator{\cor}{cor}
-\DeclareMathOperator{\cov}{cov}
-\DeclareMathOperator{\se}{se}
-\DeclareMathOperator{\quantile}{quantile}
-\renewcommand{\vec}[1]{\boldsymbol{#1}}
-\renewcommand{\mat}[1]{\boldsymbol{#1}}
-\]</span></p>
 <p>Instructions</p>
 <ol style="list-style-type: decimal">
 <li><a href="https://help.github.com/articles/using-pull-requests/">Fork this repository</a> to your GitHub account.</li>
@@ -157,7 +172,7 @@ library(&quot;DT&quot;)</code></pre>
 <h1><span class="header-section-number">1</span> Nunn and Wantchekon AER 2011 example</h1>
 <p>Let’s run some regressions from</p>
 <blockquote>
-<p>Nunn, Nathan and Leonard Wantchekon. 2011. “The Slave Trade and the Origins of Mistrust in Africa.” American Economic Review, 101(7):3221-52. <a href="https://dx.doi.org/10.1257/aer.101.7.3221"><a href="doi:10.1257/aer.101.7.3221" class="uri">doi:10.1257/aer.101.7.3221</a></a></p>
+<p>Nunn, Nathan and Leonard Wantchekon. 2011. “The Slave Trade and the Origins of Mistrust in Africa.” American Economic Review, 101(7):3221-52. <a href="https://dx.doi.org/10.1257/aer.101.7.3221">doi:10.1257/aer.101.7.3221</a></p>
 </blockquote>
 <p>The replication data for the is available from its <a href="https://dx.doi.org/10.1257/aer.101.7.3221">AER site</a>, but the main dataset is included in this repository. Since the main dataset is a Stata <code>.dta</code> file load it using the <code>read.dta</code> function and convert it to a <strong>dplyr</strong> <code>tbl</code> so the <code>print</code> function produces nicer output.</p>
 <pre class="r"><code>nunn &lt;- read.dta(&quot;Nunn_Wantchekon_AER_2011.dta&quot;) %&gt;% tbl_df()</code></pre>
@@ -166,7 +181,7 @@ library(&quot;DT&quot;)</code></pre>
   datatable(class = &#39;cell-border stripe&#39;)</code></pre>
 <p><div id="htmlwidget-1137" style="width:100%;height:auto;" class="datatables html-widget"></div>
 <script type="application/json" data-for="htmlwidget-1137">{"x":{"data":[["1","2","3","4","5","6","7","8","9","10","11","12","13","14","15","16","17","18","19","20","21","22","23","24","25","26","27","28","29","30","31","32","33","34","35","36","37","38","39","40","41","42","43","44","45","46","47","48","49","50","51","52","53","54","55","56","57","58","59"],["respno","ethnicity","murdock_name","isocode","region","district","townvill","location_id","trust_relatives","trust_neighbors","intra_group_trust","inter_group_trust","trust_local_council","ln_export_area","export_area","export_pop","ln_export_pop","age","age2","male","urban_dum","occupation","religion","living_conditions","education","near_dist","distsea","loc_murdock_name","loc_ln_export_area","local_council_performance","council_listen","corrupt_local_council","school_present","electricity_present","piped_water_present","sewage_present","health_clinic_present","district_ethnic_frac","frac_ethnicity_in_district","townvill_nonethnic_mean_exports","district_nonethnic_mean_exports","region_nonethnic_mean_exports","country_nonethnic_mean_exports","murdock_centr_dist_coast","centroid_lat","centroid_long","explorer_contact","railway_contact","dist_Saharan_node","dist_Saharan_line","malaria_ecology","v30","v33","fishing","exports","ln_exports","total_missions_area","ln_init_pop_density","cities_1400_dum"],["Respondent number in Afrobarometer dataset","Ethnicity name: from Afrobarometer q79","Ethnicity name: from Murdock","Country 3 digit iso code","Region: from Afrobarometer","District: from Afrobarometer","Town/village: from Afrobarometer","Unique location-of-repondent identifier - based on isocode region district townv","Trust of relatives: q84a","Trust of neighbors: q84b","Intra-group trust: q84d","Inter-group trust: q84c","Trust of local government council: q55d","Log [(total slave exports: Atlantic + Indian) / area (km^2)","(total slave exports: Atlantic + Indian) / area (km^2)","Exports divided by historic Murdock population","Ln (1+exports/Murdock historic population)","Age: q1","Age squared","Indicator for respondent being male: q101","Indicator for respondent living in urban area","Occupation categories: q95","Religion categories: q91","Living condition categories:q4b","Education categories: Afrobarometer q90","Current distance from coast 1000s kms","Historic distance from coast 1000s kms","Murdock identifier for the current location of the respondent","Slave exports measure based on current location of respondent","Perceived performance of local council: q68c","Does the local council listen: q62b","How much corruption in local council: q56c","Is there a school in the PSU: q116b","Is there electricity in the PSU: q116d","Is there piped water in the PSU: q116e","Is there sewage in the PSU: q116f","Is there a health clinic in the PSU: q116g","District-level ethnic fractionalization","Proportion of ethnic group in district","Avg slave exports of other ethnicities within town/village","Avg slave exports of other ethnicities within district","Avg slave exports of other ethnicities within region","Avg slave exports of other ethnicities within country","Historic distance of ethnicity's centroid from the coast (in kms)","Historic latitude of centroid of ethnic group","Historic longitude of centroid of ethnic group","Indicator for historic contact with European explorer","Indicator variable for historic integration into the colonial railway network","Historic distance of ethnicity's centroid from a centroid (town) in Saharan trad","Historic distance of ethnicity's centroid from a line (route) in Saharan trade (","Ethnic groups average malaria ecology measure","Pre-colonial settlement patterns of ethnicity: from Ethngraphic Atlas v30","Pre-colonial juris. hierarchy beyond the local community: Ethnographic Atlas v33","Pre-colonial reliance on fishing: Ethnographic Atlas v3","(Atlantic+Indian Exports)","ln(1+Atlantic+Indian Exports)","Total Catholic + Protestant mission per land area","Log population density during the colonial period - from Murdock","Indicator for existence of city among ethnic group in 1400"]],"container":"<table class=\"cell-border stripe\">\n  <thead>\n    <tr>\n      <th> \u003c/th>\n      <th>variable\u003c/th>\n      <th>description\u003c/th>\n    \u003c/tr>\n  \u003c/thead>\n\u003c/table>","options":{"order":[],"autoWidth":false,"orderClasses":false,"columnDefs":[{"orderable":false,"targets":0}]},"callback":null,"filter":"none"},"evals":[],"jsHooks":[]}</script></p>
-<p>In Table 1, NW run several models with Trust in Neighbors as an outcome variable, different measures of slave exports as the treatment variable, and the same set of controls variables. The relevant variables in the data are:</p>
+<p>In Table 1, NW run several models with Trust in Neighbors as an outcome variable, different measures of slave exports as the treatment variable, and the same set of controls variables. Some of the relevant variables in the data are:</p>
 <ul>
 <li><code>trust_neighbors</code>: Trust of neighbors</li>
 <li><code>exports</code>: Slave exports in 1000s</li>
@@ -224,11 +239,24 @@ p(H_0 | \text{data}) =
 <ul>
 <li>Run the following regressions
 <ol style="list-style-type: decimal">
-<li>Run the regression of <code>trust_neighbors</code> on the controls. Save the residuals</li>
-<li>Run the regression of <code>exports</code> on the controls. Save the residuals</li>
-<li>Regression the residuals from regression 1 on the residuals from regression 2.</li>
+<li><p>Regress regression of <code>trust_neighbors</code> on the controls.</p>
+<pre class="r"><code>lm(trust_neighbors ~ age + age2 +
+   male + urban_dum + factor(education) + 
+   factor(occupation) + factor(religion) +
+   factor(living_conditions) + district_ethnic_frac +
+   frac_ethnicity_in_district + isocode, data = nunn)</code></pre>
+Save the residuals.</li>
+<li><p>Run the regression of <code>ln_export_pop</code> on the controls. Save the residuals</p>
+<pre class="r"><code>lm(ln_export_pop ~ age + age2 +
+   male + urban_dum + factor(education) + 
+   factor(occupation) + factor(religion) +
+   factor(living_conditions) + district_ethnic_frac +
+   frac_ethnicity_in_district + isocode, data = nunn)</code></pre>
+Save the residuals.</li>
+<li>Regress the residuals from 1. on the residuals on 2.</li>
 </ol></li>
-<li>How does the coefficient in regression 3 compare the the coefficient on <code>exports</code> from the regression in Table 1, Model 6? What does that say about what multiple regression is doing?</li>
+<li>How does the coefficient from regression 3 compare the the coefficient on <code>exports</code> from the regression in Table 1, Model 6? What does that say about what multiple regression is doing?</li>
+<li>Are the steps</li>
 </ul>
 </div>
 </div>
@@ -352,7 +380,6 @@ head(beta_dist)</code></pre>
 </div>
 <div id="f-test-example" class="section level2">
 <h2><span class="header-section-number">1.8</span> F-test example</h2>
-<p>TODO: Fix this</p>
 <p>An <span class="math inline">\(F\)</span>-test tests the null hypothesis that several coefficients in the regression are all 0 vs. the alternative that at least one of the coefficients is non-zero.</p>
 <p><span class="math display">\[
 \begin{aligned}[t]
@@ -360,8 +387,8 @@ H_0: &amp;\quad \beta_j = \dots = \beta_J = 0
 H_a: &amp;\quad \text{at least one $\beta_k \neq 0$}
 \end{aligned}
 \]</span></p>
+<p>To run an F-test in R, we use the <code>anova()</code> function.</p>
 <ul>
-<li>Run F-tests of the multiple regression model vs. the model with no controls.</li>
 <li>Run and interpret an F-test on some reasonable group of variables.</li>
 </ul>
 <div id="f-test-simulations" class="section level3">

@@ -3,18 +3,13 @@ title: "Assignment 03"
 output:
   html_document:
     keep_md: true
-    css: styles.css
     self_contained: false
+    css: styles.css
     number_sections: true
+    includes:
+      in_header: includes/in_header.html
+      before_body: includes/before_body.html
 ---
-$$
-\DeclareMathOperator{\cor}{cor}
-\DeclareMathOperator{\cov}{cov}
-\DeclareMathOperator{\se}{se}
-\DeclareMathOperator{\quantile}{quantile}
-\renewcommand{\vec}[1]{\boldsymbol{#1}}
-\renewcommand{\mat}[1]{\boldsymbol{#1}}
-$$
 
 Instructions
 
@@ -74,7 +69,7 @@ data_frame(variable = names(nunn), description = attr(nunn, "var.labels")) %>%
 
 In Table 1, NW run several models with Trust in Neighbors as an outcome variable,
 different measures of slave exports as the treatment variable, and the same set of controls variables.
-The relevant variables in the data are:
+Some of the relevant variables in the data are:
 
 - `trust_neighbors`: Trust of neighbors
 - `exports`: Slave exports in 1000s
@@ -88,7 +83,7 @@ The relevant variables in the data are:
 Run a regression of the Trust of Neighbors on Slave exports.
 This is Table 1, Model 1, without any of the control variables.
 ```{r}
-mod1 <- lm(trust_neighbors ~ exports, data = nunn)
+mod_1_0 <- lm(trust_neighbors ~ exports, data = nunn)
 ```
 
 <div class="bs-callout bs-callout-info">
@@ -102,11 +97,11 @@ mod1 <- lm(trust_neighbors ~ exports, data = nunn)
 
 Example of using `augment` for fitted values:
 ```{r eval=FALSE}
-augment(mod1, data_frame(exports = seq(min(nunn$exports, na.rm = TRUE), max(nunn$exports, na.rm = TRUE), length.out = 100)))
+augment(mod_1_0, data_frame(exports = seq(min(nunn$exports, na.rm = TRUE), max(nunn$exports, na.rm = TRUE), length.out = 100)))
 ```
 Example of plotting the confidence intervals
 ```{r eval = FALSE}
-ggplot() + geom_line(data = mod1_fitted, mapping = aes(x = exports, y = .fitted)) + geom_ribbon(data = mod1_fitted, mapping = aes(x = exports, y = .fitted, ymin = .fitted - 2 * .se.fit, ymax = .fitted + 2 * .se.fit), alpha = 0.3) + geom_point(data = nunn, aes(x = exports, y = trust_neighbors))
+ggplot() + geom_line(data = mod_1_0_fitted, mapping = aes(x = exports, y = .fitted)) + geom_ribbon(data = mod1_fitted, mapping = aes(x = exports, y = .fitted, ymin = .fitted - 2 * .se.fit, ymax = .fitted + 2 * .se.fit), alpha = 0.3) + geom_point(data = nunn, aes(x = exports, y = trust_neighbors))
 ```
 
 
@@ -138,11 +133,21 @@ Working somewhat informally, the p-value gives $p(\text{data} | H_0)$. An import
 ## Multiple regression
 
 In the models in Table 1, NW includes control variables to account for individual, district, and country-level 
-variables that may explain differences.
+variables that may explain differences. 
+
+Run the model in Table 1, Model 1:
+```{r}
+mod_1_1 <- lm(trust_neighbors ~ exports + 
+              age + age2 +
+              male + urban_dum + factor(education) + 
+              factor(occupation) + factor(religion) +
+              factor(living_conditions) + district_ethnic_frac +
+              frac_ethnicity_in_district + isocode,
+              data = nunn)
+mod_1_1
+```
 
 <div class="bs-callout bs-callout-info">
-- What are the control variables that NW include in the models in Table 1?
-- Run the model in Table 1, Regression 1 and report the results: coefficients, p-values, etc.
 - Interpret the coefficient on `exports`
 - How much does the coefficient change with the addition of control variables? What does that suggest?
 - Do the R^2 and number of observations match those reported in Table 1?
@@ -152,15 +157,33 @@ variables that may explain differences.
   What is different about the multiple regression case than the bivariate case?
 </div>
 
+
 ### Understanding Multiple Regression
 
 <div class="bs-callout bs-callout-info">
 - Run the following regressions
-    1. Run the regression of `trust_neighbors` on the controls. Save the residuals
+    1. Regress regression of `trust_neighbors` on the controls.
+        ```r
+        lm(trust_neighbors ~ age + age2 +
+           male + urban_dum + factor(education) + 
+           factor(occupation) + factor(religion) +
+           factor(living_conditions) + district_ethnic_frac +
+           frac_ethnicity_in_district + isocode, data = nunn)
+        ```
+        Save the residuals.
     2. Run the regression of `exports` on the controls. Save the residuals
-    3. Regression the residuals from regression 1 on the residuals from regression 2.
-- How does the coefficient in regression 3 compare the the coefficient on `exports` from the regression in Table 1, Model 6?
+        ```r
+        lm(exports ~ age + age2 +
+           male + urban_dum + factor(education) + 
+           factor(occupation) + factor(religion) +
+           factor(living_conditions) + district_ethnic_frac +
+           frac_ethnicity_in_district + isocode, data = nunn)
+        ```
+        Save the residuals.
+    3. Regress the residuals from 1. on the residuals on 2.
+- How does the coefficient from regression 3 compare the the coefficient on `exports` from the regression in Table 1, Model 1?
     What does that say about what multiple regression is doing?
+- Are the steps 
 </div>
 
 
@@ -171,15 +194,26 @@ One of the assumptions necessary for OLS standard errors to be correct is homosk
 <div class="bs-callout bs-callout-info">
 - How might that assumption be violated?
 - Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors?
-- Do the standard errors match those in Table 1? What sort of standard errors does the article use?
+- Do the standard errors match those reported in Table 1 of the article? What sort of standard errors does the article use?
 </div>
 
 
 ## Regressions with log slave exports per capita
 
+Run the regression in Table 1, model 6, which uses "log(1 + exports / pop)" as a measure of slave exports.
+
+```{r}
+mod_1_6 <- lm(trust_neighbors ~ ln_export_pop + 
+              age + age2 + male + urban_dum + factor(education) +
+              factor(occupation) + factor(religion) +
+              factor(living_conditions) + district_ethnic_frac +
+              frac_ethnicity_in_district + isocode,
+              data = nunn)  
+```
+
+
 <div>
-- Run the regression in Table 1, model 6, which uses "log(1 + exports / pop)" as a measure of slave exports.
-- Interpret the effect of this variable
+- Interpret the effect of `ln_export_pop` on `trust_neighbors`
 - Why is "log(1 + exports / pop)" used as the measure instead of "log(exports / pop)"?
 - Plot the fitted values of log(1 + exports / pop) and their confidence interval against "log(1 + exports / pop)" against the residuals of the controls only regression. Include the line, confidence intervals, and data points.
 - Plot the fitted values of exports / pop against the residuals of the controls only regression. Include the line, confidence intervals, and data points. How does this relationship differ from the one which used the level of slave exports with out taking the logarithm or adjusting for population?
@@ -189,88 +223,101 @@ One of the assumptions necessary for OLS standard errors to be correct is homosk
 ## Sampling distribution of OLS coefficients
 
 Let's understand what the confidence intervals mean in terms of the sampling distribution.
-Since we don't know the true parameter values for this, we will pretend that the OLS point estimates are
-the "true" population parameters.
+Since we don't know the true parameter values for this, we will pretend that the OLS point estimates from the regression are the "true" population parameters.
 
-Given an OLS model with estimated $\hat{\beta}$ and $\hat{\sigma}$, and data, the function
-does `resampler_coef`,
+The plan to generate a sampling distribution of $\beta$ is:
 
-1. Sample $y^* \sim N(\hat{\beta} X, \hat{\sigma}^2)$
-2. Estimate OLS estimates $\tilde{y} = \beta^* X + $\varepsilon^*$
+1. Draw a new sample $\tilde{y}_i \sim N(\hat{y}_i, \hat{\sigma}^2)$.
+2. Estimate OLS estimates $\tilde{\vec{y}} = \tilde{vec{beta}} \mat{X} + \tilde{vec{varepsilon}} = \hat{y} + \tilde{\vec{\varepsilon}}$.
 3. Repeat steps 1--2, `iter` times, store $\beta^*$ for each iteration, and
    return the estimates for all samples.
    
-The distribution of the $\beta^*$ is a sampling distribution of the parameters.
+Then, then distribution of the $\beta^*$ is a sampling distribution of the parameters.
+
+<div class="bs-callout bs-callout-info">
+Why is only $\vec{y}$ being samples? Why is $\mat{X}$ fixed in these simulations? See Wooldridge Ch 2 and 3 discussion of the assumptions of OLS.
+</div>
+
+Let's take the results of the model on `ln_exports_pop` and explore the sampling distribution of $\beta$ from that model.
+
+First run the model,
 ```{r}
-resampler_coef <- function(mod, .data, iter = 1) {
-  # Remove missing values
-  .data <- na.omit(.data)
-  # Coefficients
-  beta <- coef(mod)
-  # mod$terms contains the formula used in the regression
-  X <- model.matrix(mod$terms, data = .data)
-  # estimate of std. dev. of errors
-  sigma <- sqrt(sum(mod$residuals ^ 2) / mod$df.residual)
-  # This produces the same result
-  # sigma <- summary(mod1)$sigma  
-  # Number of observations
-  n <- nrow(X)
-  # Name of dependent variable
-  outcome_var_name <- all.vars(mod$terms)[1]
-  # List to save results
-  results <- vector(mode = "list", length = iter)
-  for (i in seq_len(iter)) {
-    # draw errors
-    errors <- rnorm(n, mean = 0, sd = sigma)
-    # create new outcome variable from errors
-    y <- X %*% beta + errors
-    # replace outcome variable
-    .data[[outcome_var_name]] <- y
-    # run regression
-    newmod <- lm(mod$terms, data = .data)
-    # Save coefficients as a data frame to the list
-    results[[i]] <- tidy(newmod) %>% mutate(.iter = i)
-  }
-  # Convert the list of data frames to a single data frame by stacking the iterations
-  bind_rows(results)
-}
+mod <- lm(trust_neighbors ~ ln_export_pop + 
+          age + age2 + male + urban_dum + factor(education) +
+          factor(occupation) + factor(religion) +
+          factor(living_conditions) + district_ethnic_frac +
+          frac_ethnicity_in_district + isocode,
+          data = nunn) 
+```
+Extract the values of the parameter estimates, $\hat{\beta}$, the model matrix, $X$,the regression standard error, $\hat{\sigma}$, and the number of observations, $N$.
+```{r}
+y_hat <- predict(mod)
+sigma <- sqrt(sum(mod$residuals ^ 2) / mod$df.residual)
+n <- nrow(X)
+```
+Later we'll also need the original 
+Choose a number of iterations to run. 
+For this example use 1,024.
+```{r}
+iter <- 1024
+```
+Create a list to store the results
+```{r}
+results <- vector(mode = "list", length = iter)
 ```
 
-Suppose that `mod_1_6` is the model containing the results of the model in Table 1, Model 6.
-Simulate the sampling distribution of the 
-```{r eval=FALSE}
-beta_dist <- resampler_coef(mod_1_6, nunn, iter = 1024)
-head(beta_dist)
+- Draw the regression errors from i.i.d normal distributions, $\tilde\epsilon_i \sim N(0, \hat\sigma^2)$.
+- Generate a new dependent variable, $\tilde{\vec{y}} = \mat{X} \hat{\vec{\beta}} + \tilde{\vec{epsilon}}$.
+- Run the OLS regression to estimate the coefficients on the new data, $\tilde{\vec{y}} = \mat{X} \tilde{\vec{\beta}} + \tilde{\vec{\epsilon}}$
+
+```{r}
+# Create a copy of the data to use in the regression
+for (i in seq_len(iter)) {
+  # draw errors
+  errors <- rnorm(n, mean = 0, sd = sigma)
+  # create new outcome variable from errors
+  y <- y_hat + errors
+  # Replace the dependent variable with the newly sampled y
+  # re-run the original regression with the new data
+  # the update function re-runs the regression with changes
+  # to the regression formula. In this case, we will use
+  # y as the dependent variable instead of ln_exports_pop
+  # but use all the same predictors (the "." on the right hand side)
+  newmod <- update(mod, y ~ .)
+  # Save the coefficients as a data frame to the list
+  results[[i]] <- tidy(newmod) %>% mutate(.iter = i)
+}
+```
+Finally, since `results` is a list of data frames, stack the data frames in the list to form a single data frame that is easier to analyze:
+```{r}
+results <- bind_rows(results)
 ```
 
 <div class="bs-callout bs-callout-info">
-- Plot the distributions of the coefficients of exports.
-- Calculate the correlation matrix of the coefficients.
-  How similar is it to that returned from `vcov(mod)
+- Plot the distribution of the coefficients of `ln_export_pop`. Use a density function 
+- What is the standard deviation of the sampling distribution of the coefficient of `ln_export_pop`? How does this compare to the standard error of this coefficient given by `lm()`?
+- Calculate the correlation matrix of the coefficients. For the first step will need to create a data frame using `spread` in which the rows are iterations, the columns are coefficients, and the values are the esimates.
+- Plot that correlation matrix using `geom_raster`. Are the coefficients of coefficients uncorrelated? When would coefficients be uncorrelated?
 </div>
 
-TODO: clarify this
 
 ## Bootstrapping
 
-What you just did is an example of parametric bootstrap.
+The previous question was an example of parametric bootstrap.
 It is a parametric bootstrap because you drew data from an assumed model (the OLS model that you estimated).
 
-An alternative is a non-parametric bootstrap.
-In a non-parametric bootstrap, instead of drawing samples from model, we are going to redraw samples from the sample.
+There is also a non-parametric bootstrap.
+In a non-parametric bootstrap, instead of drawing new samples from the fitted model, we are going to draw new samples from the original sample itself.
 
-![Head Exploding Gif](head-exploding-gif-tim-and-eric.gif)
-
-An analogy is that the sample is to the population as the bootstrap is to the sample.
-We are treating the sample distribution as an estimate of the population distribution and then drawing samples from
-that estimated population distribution.
+In a bootstrap, we are treating the sample distribution as an estimate of the unknown population distribution and then drawing new samples from that estimated population distribution.
+An analogy for bootstrap is that the original sample is to the population as the bootstrap replications are to the sample.
 
 To do the bootstrapping we will use the `bootstrap` function in the **tidyr** package.
 However, the [boot](https://cran.r-project.org/web/packages/boot/index.html) package supports many more advanced methods of bootstrapping.
 
 Let's start by drawing a single bootstrap replication.
 It is a sample of the same size as the original data, drawn from the data *with replacement*.
-```{r message=FALSE,results='hide'}
+```{r message=FALSE, results='hide'}
 nunn_bootstrapped <- bootstrap(nunn, 1)
 ```
 
@@ -319,12 +366,13 @@ For example, in a time series it would be inappropriate to sample observations w
 - What is the population in this paper?
 - How was the sample drawn from this population?
 - In the previous examples, did we draw the sample in the same way as it was drawn from the population? What would
-  be a better way of drawing the bootstrapped samples? Try to implement it, and compare the differences.
+  be a better way of drawing the bootstrapped samples?
+  Try to implement it; see the `group_by` argument of `bootstrap`.
 </div>
 
 ## F-test example
 
-TODO: Fix this
+**TODO**
 
 An $F$-test tests the null hypothesis that several coefficients in the regression are all 0 vs. the alternative that 
 at least one of the coefficients is non-zero.
@@ -336,8 +384,18 @@ H_a: &\quad \text{at least one $\beta_k \neq 0$}
 \end{aligned}
 $$
 
-- Run F-tests of the multiple regression model vs. the model with no controls.
-- Run and interpret an F-test on some reasonable group of variables.
+To run an F-test in R, use the `anova()` function to compare two models.
+For example, to compare the regression of `trust_neighbors` on `exports` without controls to the regression with controls, use
+```{r}
+anova(mod_1_0, mod_1_1)
+```
+
+<div 
+- Run and interpret an F-test with 
+- Can you use the F-test to compare model 
+</div>
+
+
 
 ### F-test simulations
 
@@ -351,40 +409,6 @@ In the null hypothesis, $H_0 = 0$ for all control variables.
 2. Calculate the F-statistic
 
 
-```{r}
-resampler_models <- function(mod, .data, iter = 1) {
-  # Remove missing values
-  .data <- na.omit(.data)
-  # Coefficients
-  beta <- coef(mod)
-  # mod$terms contains the formula used in the regression
-  X <- model.matrix(mod$terms, data = .data)
-  # estimate of std. dev. of errors
-  sigma <- sqrt(sum(mod$residuals ^ 2) / mod$df.residual)
-  # This produces the same result
-  # sigma <- summary(mod1)$sigma  
-  # Number of observations
-  n <- nrow(X)
-  # Name of dependent variable
-  outcome_var_name <- all.vars(mod$terms)[1]
-  # List to save results
-  results <- vector(mode = "list", length = iter)
-  for (i in seq_len(iter)) {
-    # draw errors
-    errors <- rnorm(n, mean = 0, sd = sigma)
-    # create new outcome variable from errors
-    y <- X %*% beta + errors
-    # replace outcome variable
-    .data[[outcome_var_name]] <- y
-    # run regression
-    newmod <- lm(mod$terms, data = .data)
-    # Save model stats as a data frame to the list
-    results[[i]] <- glimpse(newmod) %>% mutate(.iter = i)
-  }
-  # Convert the list of data frames to a single data frame by stacking the iterations
-  bind_rows(results)
-}
-```
 
 # Multiple comparisons and the F-test
 
