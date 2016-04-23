@@ -259,8 +259,6 @@ It is a parametric bootstrap because you drew data from an assumed model (the OL
 An alternative is a non-parametric bootstrap.
 In a non-parametric bootstrap, instead of drawing samples from model, we are going to redraw samples from the sample.
 
-![Head Exploding Gif](head-exploding-gif-tim-and-eric.gif)
-
 An analogy is that the sample is to the population as the bootstrap is to the sample.
 We are treating the sample distribution as an estimate of the population distribution and then drawing samples from
 that estimated population distribution.
