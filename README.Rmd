@@ -232,7 +232,7 @@ The plan to generate a sampling distribution of $\beta$ is:
 3. Repeat steps 1--2, `iter` times, store $\beta^*$ for each iteration, and
    return the estimates for all samples.
    
-Then, then distribution of the $\beta^*$ is a sampling distribution of the parameters.
+Then, the distribution of the $\beta^*$ is a sampling distribution of the parameters.
 
 <div class="bs-callout bs-callout-info">
 Why is only $\vec{y}$ being samples? Why is $\mat{X}$ fixed in these simulations? See Wooldridge Ch 2 and 3 discussion of the assumptions of OLS.
@@ -252,8 +252,8 @@ mod <- lm(trust_neighbors ~ ln_export_pop +
 Extract the values of the parameter estimates, $\hat{\beta}$, the model matrix, $X$,the regression standard error, $\hat{\sigma}$, and the number of observations, $N$.
 ```{r}
 y_hat <- predict(mod)
-sigma <- sqrt(sum(mod$residuals ^ 2) / mod$df.residual)
-n <- nrow(X)
+sigma <- sqrt(sum(residuals(mod) ^ 2) / mod$df.residual)
+n <- length(residuals(mod))
 ```
 Later we'll also need the original 
 Choose a number of iterations to run. 
@@ -301,7 +301,7 @@ results <- bind_rows(results)
 </div>
 
 
-## Bootstrapping
+## Non-parametric Bootstrap
 
 The previous question was an example of parametric bootstrap.
 It is a parametric bootstrap because you drew data from an assumed model (the OLS model that you estimated).
@@ -326,7 +326,7 @@ To get bootstrap standard errors, we draw `B` replications, run an  regression, 
 ```{r message=FALSE, results='hide'}
 beta_bs <- 
   bootstrap(nunn, 1024) %>%
-    do(tidy(lm(trust_neighbors ~ exports, data = nunn)))
+    do(tidy(lm(trust_neighbors ~ ln_export_pop, data = .)))
 ```
 
 There are several ways to calculate standard errors from the bootstrap replications.
@@ -390,11 +390,10 @@ For example, to compare the regression of `trust_neighbors` on `exports` without
 anova(mod_1_0, mod_1_1)
 ```
 
-<div 
+<div class="bs-callout bs-callout-info">
 - Run and interpret an F-test with 
-- Can you use the F-test to compare model 
+- Why can't you use F-tests to compare the different models in Table 1?
 </div>
-
 
 
 ### F-test simulations
@@ -405,8 +404,14 @@ First, we need to simulate data from the null hypothesis.
 In the null hypothesis, $H_0 = 0$ for all control variables.
 
 1. Simulate $\tilde{\varepsilon}$ from $N(0, \hat{\sigma}^2)$
-2. Run the regression
-2. Calculate the F-statistic
+2. Run the regression.
+3. Calculate the F-statistic for each regression, and save them.
+4. Repeat 1--3, 5000 times.
+
+<div>
+- Why are we calculating the F-statistic from the regression ... rather than ...?
+- How would you calculate the p-value using that distribution?
+</div>
 
 
 
