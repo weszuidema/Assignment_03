@@ -156,7 +156,7 @@ $$
 <p>To update your fork from the upstream repository:</p>
 <ol style="list-style-type: decimal">
 <li>On your fork, e.g. <code>https://github.com/jrnold/Assignment_03</code> click on “New Pull request”</li>
-<li>Set your fork <code>jrnold/Assignment_03</code> as the base fork on the left, and <code>UW-POLS503/Assignment_03</code> as the head fork on the right. In both cases the branch will be master. This means, compare any canes in the head fork that are not in the base fork. You will see differences between the <code>US-POLS503</code> repository and your fork. Click on “Create Pull Request”, and if there are no issues, “Click Merge” A quick way is to use this link, but change the <code>jrnold</code> to your own username: <code>https://github.com/jrnold/Assignment_03/compare/gh-pages...UW-POLS503:gh-pages</code>.</li>
+<li>Set your fork <code>jrnold/Assignment_03</code> as the base fork on the left, and <code>UW-POLS503/Assignment_03</code> as the head fork on the right. In both cases the branch will be master. This means, compare any canes in the head fork that are not in the base fork. You will see differences between the <code>US-POLS503</code> repository and your fork. Click on “Create Pull Request”, and if there are no issues, “Click Merge” A quick way is to use this link, but change the <code>jrnold</code> to your own username: <code>https://github.com/jrnold/Assignment_03/compare/master...UW-POLS503:master</code>.</li>
 </ol>
 <p>We’ll use these packages,</p>
 <pre class="r"><code>library(&quot;foreign&quot;)
@@ -172,7 +172,7 @@ library(&quot;DT&quot;)</code></pre>
 <h1><span class="header-section-number">1</span> Nunn and Wantchekon AER 2011 example</h1>
 <p>Let’s run some regressions from</p>
 <blockquote>
-<p>Nunn, Nathan and Leonard Wantchekon. 2011. “The Slave Trade and the Origins of Mistrust in Africa.” American Economic Review, 101(7):3221-52. <a href="https://dx.doi.org/10.1257/aer.101.7.3221">doi:10.1257/aer.101.7.3221</a></p>
+<p>Nunn, Nathan and Leonard Wantchekon. 2011. “The Slave Trade and the Origins of Mistrust in Africa.” American Economic Review, 101(7):3221-52. <a href="https://dx.doi.org/10.1257/aer.101.7.3221"><a href="doi:10.1257/aer.101.7.3221" class="uri">doi:10.1257/aer.101.7.3221</a></a></p>
 </blockquote>
 <p>The replication data for the is available from its <a href="https://dx.doi.org/10.1257/aer.101.7.3221">AER site</a>, but the main dataset is included in this repository. Since the main dataset is a Stata <code>.dta</code> file load it using the <code>read.dta</code> function and convert it to a <strong>dplyr</strong> <code>tbl</code> so the <code>print</code> function produces nicer output.</p>
 <pre class="r"><code>nunn &lt;- read.dta(&quot;Nunn_Wantchekon_AER_2011.dta&quot;) %&gt;% tbl_df()</code></pre>
@@ -189,10 +189,15 @@ library(&quot;DT&quot;)</code></pre>
 <li>District controls: <code>district_ethnic_frac</code>, <code>frac_ethnicity_in_district</code></li>
 <li>Country-fixed effects: <code>isocode</code></li>
 </ul>
+<p>Note that NW use <code>education</code>, <code>occupation</code>, <code>religion</code>, and <code>living_conditions</code> as factor variables. Convert them accordingly,</p>
+<pre class="r"><code>factor_vars &lt;- c(&quot;education&quot;, &quot;occupation&quot;, &quot;religion&quot;, &quot;living_conditions&quot;)
+for (i in factor_vars) {
+  nunn[[i]] &lt;- factor(nunn[[i]])
+}</code></pre>
 <div id="bivariate-regression" class="section level2">
 <h2><span class="header-section-number">1.1</span> Bivariate regression</h2>
 <p>Run a regression of the Trust of Neighbors on Slave exports. This is Table 1, Model 1, without any of the control variables.</p>
-<pre class="r"><code>mod1 &lt;- lm(trust_neighbors ~ exports, data = nunn)</code></pre>
+<pre class="r"><code>mod_1_0 &lt;- lm(trust_neighbors ~ exports, data = nunn)</code></pre>
 <div class="bs-callout bs-callout-info">
 <ul>
 <li>Interpret the magnitude and statistical significance of the coefficient on <code>trust_neighbors</code>.</li>
@@ -202,9 +207,9 @@ library(&quot;DT&quot;)</code></pre>
 </ul>
 </div>
 <p>Example of using <code>augment</code> for fitted values:</p>
-<pre class="r"><code>augment(mod1, data_frame(exports = seq(min(nunn$exports, na.rm = TRUE), max(nunn$exports, na.rm = TRUE), length.out = 100)))</code></pre>
+<pre class="r"><code>augment(mod_1_0, data_frame(exports = seq(min(nunn$exports, na.rm = TRUE), max(nunn$exports, na.rm = TRUE), length.out = 100)))</code></pre>
 <p>Example of plotting the confidence intervals</p>
-<pre class="r"><code>ggplot() + geom_line(data = mod1_fitted, mapping = aes(x = exports, y = .fitted)) + geom_ribbon(data = mod1_fitted, mapping = aes(x = exports, y = .fitted, ymin = .fitted - 2 * .se.fit, ymax = .fitted + 2 * .se.fit), alpha = 0.3) + geom_point(data = nunn, aes(x = exports, y = trust_neighbors))</code></pre>
+<pre class="r"><code>ggplot() + geom_line(data = mod_1_0_fitted, mapping = aes(x = exports, y = .fitted)) + geom_ribbon(data = mod1_fitted, mapping = aes(x = exports, y = .fitted, ymin = .fitted - 2 * .se.fit, ymax = .fitted + 2 * .se.fit), alpha = 0.3) + geom_point(data = nunn, aes(x = exports, y = trust_neighbors))</code></pre>
 </div>
 <div id="probablities-of-hypotheses" class="section level2">
 <h2><span class="header-section-number">1.2</span> Probablities of Hypotheses</h2>
@@ -222,10 +227,107 @@ p(H_0 | \text{data}) =
 <div id="multiple-regression" class="section level2">
 <h2><span class="header-section-number">1.3</span> Multiple regression</h2>
 <p>In the models in Table 1, NW includes control variables to account for individual, district, and country-level variables that may explain differences.</p>
+<p>Run the model in Table 1, Model 1:</p>
+<pre class="r"><code>mod_1_1 &lt;- lm(trust_neighbors ~
+              exports +
+              # controls
+              # individual level
+              age + age2 + male + urban_dum + education +
+              occupation + religion + living_conditions +
+              # district-level 
+              district_ethnic_frac + frac_ethnicity_in_district +
+              # country-level
+              isocode,
+              data = nunn)
+mod_1_1</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = trust_neighbors ~ exports + age + age2 + male + 
+##     urban_dum + education + occupation + religion + living_conditions + 
+##     district_ethnic_frac + frac_ethnicity_in_district + isocode, 
+##     data = nunn)
+## 
+## Coefficients:
+##                (Intercept)                     exports  
+##                  1.620e+00                  -6.791e-04  
+##                        age                        age2  
+##                  8.396e-03                  -5.473e-05  
+##                       male                   urban_dum  
+##                  4.550e-02                  -1.405e-01  
+##                 education1                  education2  
+##                  1.710e-02                  -5.225e-02  
+##                 education3                  education4  
+##                 -1.374e-01                  -1.890e-01  
+##                 education5                  education6  
+##                 -1.893e-01                  -2.401e-01  
+##                 education7                  education8  
+##                 -2.851e-01                  -1.232e-01  
+##                 education9                 occupation1  
+##                 -2.406e-01                   6.186e-02  
+##                occupation2                 occupation3  
+##                  7.392e-02                   3.356e-02  
+##                occupation4                 occupation5  
+##                  7.942e-03                   6.661e-02  
+##                occupation6                 occupation7  
+##                 -7.563e-02                   1.700e-02  
+##                occupation8                 occupation9  
+##                 -9.428e-02                  -9.981e-02  
+##               occupation10                occupation11  
+##                 -3.307e-02                  -2.300e-02  
+##               occupation12                occupation13  
+##                 -1.565e-01                  -1.441e-02  
+##               occupation14                occupation15  
+##                 -5.566e-02                  -2.344e-01  
+##               occupation16                occupation18  
+##                 -1.307e-02                  -1.730e-01  
+##               occupation19                occupation20  
+##                 -1.770e-01                  -2.458e-02  
+##               occupation21                occupation22  
+##                 -4.937e-02                  -1.069e-01  
+##               occupation23                occupation24  
+##                 -9.712e-02                   1.292e-02  
+##               occupation25               occupation995  
+##                  2.623e-02                  -1.195e-03  
+##                  religion2                   religion3  
+##                  5.396e-02                   7.888e-02  
+##                  religion4                   religion5  
+##                  4.749e-02                   4.318e-02  
+##                  religion6                   religion7  
+##                 -1.788e-02                  -3.617e-02  
+##                 religion10                  religion11  
+##                  6.015e-02                   2.238e-01  
+##                 religion12                  religion13  
+##                  2.627e-01                  -6.813e-02  
+##                 religion14                  religion15  
+##                  4.674e-02                   3.845e-01  
+##                religion360                 religion361  
+##                  3.657e-01                   3.416e-01  
+##                religion362                 religion363  
+##                  8.230e-01                   3.857e-01  
+##                religion995          living_conditions2  
+##                  4.161e-02                   4.396e-02  
+##         living_conditions3          living_conditions4  
+##                  8.627e-02                   1.197e-01  
+##         living_conditions5        district_ethnic_frac  
+##                  1.204e-01                  -1.554e-02  
+## frac_ethnicity_in_district                  isocodeBWA  
+##                  1.011e-01                  -4.259e-01  
+##                 isocodeGHA                  isocodeKEN  
+##                  1.135e-02                  -1.820e-01  
+##                 isocodeLSO                  isocodeMDG  
+##                 -5.511e-01                  -3.316e-01  
+##                 isocodeMLI                  isocodeMOZ  
+##                  7.528e-02                   8.224e-02  
+##                 isocodeMWI                  isocodeNAM  
+##                  3.062e-01                  -1.398e-01  
+##                 isocodeNGA                  isocodeSEN  
+##                 -2.382e-01                   3.867e-01  
+##                 isocodeTZA                  isocodeUGA  
+##                  2.079e-01                  -6.444e-02  
+##                 isocodeZAF                  isocodeZMB  
+##                 -2.179e-01                  -2.173e-01</code></pre>
 <div class="bs-callout bs-callout-info">
 <ul>
-<li>What are the control variables that NW include in the models in Table 1?</li>
-<li>Run the model in Table 1, Regression 1 and report the results: coefficients, p-values, etc.</li>
 <li>Interpret the coefficient on <code>exports</code></li>
 <li>How much does the coefficient change with the addition of control variables? What does that suggest?</li>
 <li>Do the R^2 and number of observations match those reported in Table 1?</li>
@@ -240,22 +342,20 @@ p(H_0 | \text{data}) =
 <li>Run the following regressions
 <ol style="list-style-type: decimal">
 <li><p>Regress regression of <code>trust_neighbors</code> on the controls.</p>
-<pre class="r"><code>lm(trust_neighbors ~ age + age2 +
-   male + urban_dum + factor(education) + 
-   factor(occupation) + factor(religion) +
-   factor(living_conditions) + district_ethnic_frac +
-   frac_ethnicity_in_district + isocode, data = nunn)</code></pre>
+<pre class="r"><code>lm(trust_neighbors ~ age + age2 + male + urban_dum +
+   education + occupation + religion + living_conditions +
+   district_ethnic_frac + frac_ethnicity_in_district +
+   isocode, data = nunn)</code></pre>
 Save the residuals.</li>
-<li><p>Run the regression of <code>ln_export_pop</code> on the controls. Save the residuals</p>
-<pre class="r"><code>lm(ln_export_pop ~ age + age2 +
-   male + urban_dum + factor(education) + 
-   factor(occupation) + factor(religion) +
-   factor(living_conditions) + district_ethnic_frac +
-   frac_ethnicity_in_district + isocode, data = nunn)</code></pre>
+<li><p>Run the regression of <code>exports</code> on the controls. Save the residuals</p>
+<pre class="r"><code>lm(exports ~ age + age2 + male + urban_dum +
+   education + occupation + religion + living_conditions +
+   district_ethnic_frac + frac_ethnicity_in_district +
+   isocode, data = nunn)</code></pre>
 Save the residuals.</li>
 <li>Regress the residuals from 1. on the residuals on 2.</li>
 </ol></li>
-<li>How does the coefficient from regression 3 compare the the coefficient on <code>exports</code> from the regression in Table 1, Model 6? What does that say about what multiple regression is doing?</li>
+<li>How does the coefficient from regression 3 compare the the coefficient on <code>exports</code> from the regression in Table 1, Model 1? What does that say about what multiple regression is doing?</li>
 <li>Are the steps</li>
 </ul>
 </div>
@@ -268,16 +368,22 @@ Save the residuals.</li>
 <ul>
 <li>How might that assumption be violated?</li>
 <li>Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors?</li>
-<li>Do the standard errors match those in Table 1? What sort of standard errors does the article use?</li>
+<li>Do the standard errors match those reported in Table 1 of the article? What sort of standard errors does the article use?</li>
 </ul>
 </div>
 </div>
 <div id="regressions-with-log-slave-exports-per-capita" class="section level2">
 <h2><span class="header-section-number">1.5</span> Regressions with log slave exports per capita</h2>
+<p>Run the regression in Table 1, model 6, which uses “log(1 + exports / pop)” as a measure of slave exports.</p>
+<pre class="r"><code>mod_1_6 &lt;- lm(trust_neighbors ~ ln_export_pop + 
+              age + age2 + male + urban_dum + education +
+              occupation + religion +
+              living_conditions + district_ethnic_frac +
+              frac_ethnicity_in_district + isocode,
+              data = nunn)  </code></pre>
 <div>
 <ul>
-<li>Run the regression in Table 1, model 6, which uses “log(1 + exports / pop)” as a measure of slave exports.</li>
-<li>Interpret the effect of this variable</li>
+<li>Interpret the effect of <code>ln_export_pop</code> on <code>trust_neighbors</code></li>
 <li>Why is “log(1 + exports / pop)” used as the measure instead of “log(exports / pop)”?</li>
 <li>Plot the fitted values of log(1 + exports / pop) and their confidence interval against “log(1 + exports / pop)” against the residuals of the controls only regression. Include the line, confidence intervals, and data points.</li>
 <li>Plot the fitted values of exports / pop against the residuals of the controls only regression. Include the line, confidence intervals, and data points. How does this relationship differ from the one which used the level of slave exports with out taking the logarithm or adjusting for population?</li>
@@ -286,65 +392,89 @@ Save the residuals.</li>
 </div>
 <div id="sampling-distribution-of-ols-coefficients" class="section level2">
 <h2><span class="header-section-number">1.6</span> Sampling distribution of OLS coefficients</h2>
-<p>Let’s understand what the confidence intervals mean in terms of the sampling distribution. Since we don’t know the true parameter values for this, we will pretend that the OLS point estimates are the “true” population parameters.</p>
-<p>Given an OLS model with estimated <span class="math inline">\(\hat{\beta}\)</span> and <span class="math inline">\(\hat{\sigma}\)</span>, and data, the function does <code>resampler_coef</code>,</p>
+<p>Let’s understand what the confidence intervals mean in terms of the sampling distribution. Since we don’t know the true parameter values for this, we will pretend that the OLS point estimates from the regression are the “true” population parameters.</p>
+<p>The plan to generate a sampling distribution of <span class="math inline">\(\beta\)</span> is:</p>
 <ol style="list-style-type: decimal">
-<li>Sample <span class="math inline">\(y^* \sim N(\hat{\beta} X, \hat{\sigma}^2)\)</span></li>
-<li>Estimate OLS estimates $ = ^* X + <span class="math inline">\(\varepsilon^*\)</span></li>
+<li>Draw a new sample <span class="math inline">\(\tilde{y}_i \sim N(\hat{y}_i, \hat{\sigma}^2)\)</span>.</li>
+<li>Estimate OLS estimates <span class="math inline">\(\tilde{\vec{y}} = \tilde{vec{beta}} \mat{X} + \tilde{vec{varepsilon}} = \hat{y} + \tilde{\vec{\varepsilon}}\)</span>.</li>
 <li>Repeat steps 1–2, <code>iter</code> times, store <span class="math inline">\(\beta^*\)</span> for each iteration, and return the estimates for all samples.</li>
 </ol>
-<p>The distribution of the <span class="math inline">\(\beta^*\)</span> is a sampling distribution of the parameters.</p>
-<pre class="r"><code>resampler_coef &lt;- function(mod, .data, iter = 1) {
-  # Remove missing values
-  .data &lt;- na.omit(.data)
-  # Coefficients
-  beta &lt;- coef(mod)
-  # mod$terms contains the formula used in the regression
-  X &lt;- model.matrix(mod$terms, data = .data)
-  # estimate of std. dev. of errors
-  sigma &lt;- sqrt(sum(mod$residuals ^ 2) / mod$df.residual)
-  # This produces the same result
-  # sigma &lt;- summary(mod1)$sigma  
-  # Number of observations
-  n &lt;- nrow(X)
-  # Name of dependent variable
-  outcome_var_name &lt;- all.vars(mod$terms)[1]
-  # List to save results
-  results &lt;- vector(mode = &quot;list&quot;, length = iter)
-  for (i in seq_len(iter)) {
-    # draw errors
-    errors &lt;- rnorm(n, mean = 0, sd = sigma)
-    # create new outcome variable from errors
-    y &lt;- X %*% beta + errors
-    # replace outcome variable
-    .data[[outcome_var_name]] &lt;- y
-    # run regression
-    newmod &lt;- lm(mod$terms, data = .data)
-    # Save coefficients as a data frame to the list
-    results[[i]] &lt;- tidy(newmod) %&gt;% mutate(.iter = i)
-  }
-  # Convert the list of data frames to a single data frame by stacking the iterations
-  bind_rows(results)
-}</code></pre>
-<p>Suppose that <code>mod_1_6</code> is the model containing the results of the model in Table 1, Model 6. Simulate the sampling distribution of the</p>
-<pre class="r"><code>beta_dist &lt;- resampler_coef(mod_1_6, nunn, iter = 1024)
-head(beta_dist)</code></pre>
+<p>Then, the distribution of the <span class="math inline">\(\beta^*\)</span> is a sampling distribution of the parameters.</p>
 <div class="bs-callout bs-callout-info">
+<p>Why is only <span class="math inline">\(\vec{y}\)</span> being samples? Why is <span class="math inline">\(\mat{X}\)</span> fixed in these simulations? See Wooldridge Ch 2 and 3 discussion of the assumptions of OLS.</p>
+</div>
+<p>Let’s take the results of the model on <code>ln_export_pop</code> and explore the sampling distribution of <span class="math inline">\(\beta\)</span> from that model.</p>
+<p>First run the model,</p>
+<pre class="r"><code>mod &lt;- lm(trust_neighbors ~ ln_export_pop + 
+          age + age2 + male + urban_dum + education +
+          occupation + religion +
+          living_conditions + district_ethnic_frac +
+          frac_ethnicity_in_district + isocode,
+          data = nunn, na.action = na.exclude)</code></pre>
+<p>The argument <code>na.action = na.exclude</code> ensures that when we calculate residuals, etc. they will be padded with missing values so they are the same length as the original <code>nunn</code> data. There are other ways to work around this, but this makes the code to run the simulations easier, especially the step that draws <code>y_hat</code>.</p>
+<p>Extract the values of the parameter estimates, <span class="math inline">\(\hat{\beta}\)</span>, the model matrix, <span class="math inline">\(X\)</span>,the regression standard error, <span class="math inline">\(\hat{\sigma}\)</span>, and the number of observations, <span class="math inline">\(N\)</span>.</p>
+<pre class="r"><code>y_hat &lt;- predict(mod, na.action = na.exclude)
+sigma &lt;- sqrt(sum(residuals(mod) ^ 2, na.rm = TRUE) / mod$df.residual)
+n &lt;- nrow(nunn)</code></pre>
+<p>Later we’ll also need the original Choose a number of iterations to run. For this example use 1,024.</p>
+<pre class="r"><code>iter &lt;- 1024</code></pre>
+<p>Create a list to store the results</p>
+<pre class="r"><code>results &lt;- vector(mode = &quot;list&quot;, length = iter)</code></pre>
+<p>For iterations <code>1 ... iter</code> we cant to</p>
 <ul>
-<li>Plot the distributions of the coefficients of exports.</li>
-<li>Calculate the correlation matrix of the coefficients. How similar is it to that returned from `vcov(mod)</li>
+<li>Draw the regression errors from i.i.d normal distributions, <span class="math inline">\(\tilde\epsilon_i \sim N(0, \hat\sigma^2)\)</span>.</li>
+<li>Generate a new dependent variable, <span class="math inline">\(\tilde{\vec{y}} = \mat{X} \hat{\vec{\beta}} + \tilde{\vec{epsilon}}\)</span>.</li>
+<li>Run an OLS regression to estimate the coefficients on the new data, <span class="math inline">\(\tilde{\vec{y}} = \mat{X} \tilde{\vec{\beta}} + \tilde{\vec{\epsilon}}\)</span></li>
+<li>Save the <span class="math inline">\(\tilde{\beta}\)</span></li>
+</ul>
+<pre class="r"><code>p &lt;- progress_estimated(iter, min_time = 2)
+for (i in seq_len(iter)) {
+  # draw errors
+  errors &lt;- rnorm(n, mean = 0, sd = sigma)
+  # create new outcome variable from errors
+  nunn[[&quot;trust_neighbors_new&quot;]] &lt;- y_hat + errors
+  # Replace the dependent variable with the newly sampled y
+  newmod &lt;- lm(trust_neighbors_new ~ ln_export_pop + 
+            age + age2 + male + urban_dum + education +
+            occupation + religion +
+            living_conditions + district_ethnic_frac +
+            frac_ethnicity_in_district + isocode,
+            data = nunn)
+  # Formula objects are manipulable in R. So a more general
+  # way to do the above is to alter the formula from the model
+  # by replacing trust_neighbors ~ ... with trust_neighbors_new ~ ...
+  # formula &lt;- formula(mod$terms)
+  # formula[[2]] &lt;- &quot;trust_neighbors_imputed&quot;
+  # # check that this worked
+  # # print(formula)
+  # # Also this should be put outside the loop, since it doesn&#39;t
+  # # change
+  # newmod &lt;- lm(formula, data = nunn)
+  # Save the coefficients as a data frame to the list
+  results[[i]] &lt;- tidy(newmod) %&gt;% mutate(.iter = i)
+  # Progress bar update
+  p$tick()$print()
+}
+# clean up: remove the new variable
+nunn[[&quot;trust_neighbors_new&quot;]] &lt;- NULL</code></pre>
+<p>Finally, since <code>results</code> is a list of data frames, stack the data frames in the list to form a single data frame that is easier to analyze:</p>
+<pre class="r"><code>results &lt;- bind_rows(results)</code></pre>
+<p><strong>Note:</strong> this will take a few minutes.</p>
+<div class="bs-callout bs-callout-info">
+<p>Use the results of this simulation to answer the following questions:</p>
+<ul>
+<li>Plot the distribution of the coefficients of <code>ln_export_pop</code>.</li>
+<li>What is the standard deviation of the sampling distribution of the coefficient of <code>ln_export_pop</code>? How does this compare to the standard error of this coefficient given by <code>lm()</code>?</li>
+<li>Calculate the correlation matrix of the coefficients. For the first step will need to create a data frame using <code>spread</code> in which the rows are iterations, the columns are coefficients, and the values are the esimates.</li>
+<li>Plot that correlation matrix using <code>geom_raster</code>. Are the coefficients of coefficients uncorrelated? In general, when would coefficients be more or less correlated?</li>
+<li>Why is this simulation not (directly) appropriate for calculating a <span class="math inline">\(p\)</span>-value. What distribution would you have to simulate from to calculate a <span class="math inline">\(p\)</span>-value?</li>
 </ul>
 </div>
-<p>TODO: clarify this</p>
 </div>
-<div id="bootstrapping" class="section level2">
-<h2><span class="header-section-number">1.7</span> Bootstrapping</h2>
-<p>What you just did is an example of parametric bootstrap. It is a parametric bootstrap because you drew data from an assumed model (the OLS model that you estimated).</p>
+<div id="non-parametric-bootstrap" class="section level2">
+<h2><span class="header-section-number">1.7</span> Non-parametric Bootstrap</h2>
+<p>The previous question was an example of parametric bootstrap. It is a parametric bootstrap because you drew data from an assumed model (the OLS model that you estimated).</p>
 <p>An alternative is a non-parametric bootstrap. In a non-parametric bootstrap, instead of drawing samples from model, we are going to redraw samples from the sample.</p>
-<div class="figure">
-<img src="head-exploding-gif-tim-and-eric.gif" alt="Head Exploding Gif" />
-<p class="caption">Head Exploding Gif</p>
-</div>
 <p>An analogy is that the sample is to the population as the bootstrap is to the sample. We are treating the sample distribution as an estimate of the population distribution and then drawing samples from that estimated population distribution.</p>
 <p>To do the bootstrapping we will use the <code>bootstrap</code> function in the <strong>tidyr</strong> package. However, the <a href="https://cran.r-project.org/web/packages/boot/index.html">boot</a> package supports many more advanced methods of bootstrapping.</p>
 <p>Let’s start by drawing a single bootstrap replication. It is a sample of the same size as the original data, drawn from the data <em>with replacement</em>.</p>
@@ -352,7 +482,7 @@ head(beta_dist)</code></pre>
 <p>So, in order to calculate bootstrap standard errors, we will need to draw a sample of To get bootstrap standard errors, we draw <code>B</code> replications, run an regression, and save the estimates.</p>
 <pre class="r"><code>beta_bs &lt;- 
   bootstrap(nunn, 1024) %&gt;%
-    do(tidy(lm(trust_neighbors ~ exports, data = nunn)))</code></pre>
+    do(tidy(lm(trust_neighbors ~ ln_export_pop, data = .)))</code></pre>
 <p>There are several ways to calculate standard errors from the bootstrap replications. The following are two simple methods.</p>
 <ol style="list-style-type: decimal">
 <li><p>Calculate the standard error from these simulations by taking the standard deviation of the estimates. Suppose <span class="math inline">\(\beta^{*b}_k\)</span> is the estimated coefficient from replication <span class="math inline">\(b \in 1:B\)</span>, and <span class="math inline">\(\bar\beta^{*}_k = (\sum \beta^{*b}_k) / B\)</span>. Then the bootstrap standard error is, <span class="math display">\[
@@ -374,78 +504,74 @@ head(beta_dist)</code></pre>
 <ul>
 <li>What is the population in this paper?</li>
 <li>How was the sample drawn from this population?</li>
-<li>In the previous examples, did we draw the sample in the same way as it was drawn from the population? What would be a better way of drawing the bootstrapped samples? Try to implement it, and compare the differences.</li>
+<li>In the previous examples, did we draw the sample in the same way as it was drawn from the population? What would be a better way of drawing the bootstrapped samples? Try to implement it; see the <code>group_by</code> argument of <code>bootstrap</code>.</li>
 </ul>
 </div>
 </div>
 <div id="f-test-example" class="section level2">
 <h2><span class="header-section-number">1.8</span> F-test example</h2>
-<p>An <span class="math inline">\(F\)</span>-test tests the null hypothesis that several coefficients in the regression are all 0 vs. the alternative that at least one of the coefficients is non-zero.</p>
-<p><span class="math display">\[
+<p>An <span class="math inline">\(F\)</span>-test tests the null hypothesis that several coefficients in the regression are all 0 vs. the alternative that at least one of the coefficients is non-zero. Suppose you want to test that the <span class="math inline">\(q\)</span> coefficients <span class="math inline">\(\beta_j\)</span> through <span class="math inline">\(\beta_{j + q}\)</span> are all 0, <span class="math display">\[
 \begin{aligned}[t]
 H_0: &amp;\quad \beta_j = \dots = \beta_J = 0
 H_a: &amp;\quad \text{at least one $\beta_k \neq 0$}
 \end{aligned}
 \]</span></p>
-<p>To run an F-test in R, we use the <code>anova()</code> function.</p>
-<ul>
-<li>Run and interpret an F-test on some reasonable group of variables.</li>
-</ul>
-<div id="f-test-simulations" class="section level3">
-<h3><span class="header-section-number">1.8.1</span> F-test simulations</h3>
-<p>To better understand the F-test, let’s run some simulations.</p>
-<p>First, we need to simulate data from the null hypothesis. In the null hypothesis, <span class="math inline">\(H_0 = 0\)</span> for all control variables.</p>
-<ol style="list-style-type: decimal">
-<li>Simulate <span class="math inline">\(\tilde{\varepsilon}\)</span> from <span class="math inline">\(N(0, \hat{\sigma}^2)\)</span></li>
-<li>Run the regression</li>
-<li>Calculate the F-statistic</li>
-</ol>
-<pre class="r"><code>resampler_models &lt;- function(mod, .data, iter = 1) {
-  # Remove missing values
-  .data &lt;- na.omit(.data)
-  # Coefficients
-  beta &lt;- coef(mod)
-  # mod$terms contains the formula used in the regression
-  X &lt;- model.matrix(mod$terms, data = .data)
-  # estimate of std. dev. of errors
-  sigma &lt;- sqrt(sum(mod$residuals ^ 2) / mod$df.residual)
-  # This produces the same result
-  # sigma &lt;- summary(mod1)$sigma  
-  # Number of observations
-  n &lt;- nrow(X)
-  # Name of dependent variable
-  outcome_var_name &lt;- all.vars(mod$terms)[1]
-  # List to save results
-  results &lt;- vector(mode = &quot;list&quot;, length = iter)
-  for (i in seq_len(iter)) {
-    # draw errors
-    errors &lt;- rnorm(n, mean = 0, sd = sigma)
-    # create new outcome variable from errors
-    y &lt;- X %*% beta + errors
-    # replace outcome variable
-    .data[[outcome_var_name]] &lt;- y
-    # run regression
-    newmod &lt;- lm(mod$terms, data = .data)
-    # Save model stats as a data frame to the list
-    results[[i]] &lt;- glimpse(newmod) %&gt;% mutate(.iter = i)
-  }
-  # Convert the list of data frames to a single data frame by stacking the iterations
-  bind_rows(results)
-}</code></pre>
-</div>
-</div>
-</div>
-<div id="multiple-comparisons-and-the-f-test" class="section level1">
-<h1><span class="header-section-number">2</span> Multiple comparisons and the F-test</h1>
-<p>This question compares an F-test to running multiple t-tests</p>
-<pre class="r"><code>noise &lt;- data.frame(matrix(rnorm(2100), nrow = 100, ncol = 21))
-summary(lm(noise))</code></pre>
+<p>To run an F-test in R, use the <code>anova()</code> function to compare two models. For example, to compare the regression of <code>trust_neighbors</code> on <code>exports</code> without controls to the regression with controls, use</p>
+<pre class="r"><code>mod_1_0 &lt;- lm(trust_neighbors ~ ln_export_pop, data = nunn)
+mod_1_1 &lt;- lm(trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum +
+              education + occupation + religion + living_conditions +
+              district_ethnic_frac + frac_ethnicity_in_district +
+              isocode, data = nunn)
+anova(mod_1_0, mod_1_1)</code></pre>
+<pre><code>## Error in anova.lmlist(object, ...): models were not all fitted to the same size of dataset</code></pre>
+<p>We can’t do it! At least not yet. The problem is that <code>lm()</code> drops all rows with at least one missing value. So <code>mod_1_0</code> and <code>mod_1_1</code> run a regression on datasets with different numbers of observations,</p>
+<pre class="r"><code>mod_1_0$df.residual + length(mod_1_0$coefficients)</code></pre>
+<pre><code>## [1] 18112</code></pre>
+<pre class="r"><code>mod_1_1$df.residual + length(mod_1_1$coefficients)</code></pre>
+<pre><code>## [1] 17644</code></pre>
+<p>The residual degrees of freedom is <span class="math inline">\(N - K - 1\)</span>, and the length of the coefficient vector is <span class="math inline">\(K + 1\)</span>, so their sum is the number of observations in the regression, <span class="math inline">\((N - K - 1) + (K + 1) = N\)</span>.</p>
+<p>To ensure that these models are run on the same set of data, create a subset of the <code>nunn</code> data that has all the variables in the larger model, and drop an observations with missing values in any of those variables, using <code>na.omit()</code>.</p>
+<pre class="r"><code>nunn_nomiss &lt;- nunn %&gt;%
+  select(trust_neighbors, ln_export_pop, age, age2, male, urban_dum,
+         education, occupation, religion, living_conditions,
+         district_ethnic_frac, frac_ethnicity_in_district,
+         isocode) %&gt;%
+  na.omit()</code></pre>
+<p>Now, we can compare the models,</p>
+<pre class="r"><code>mod_1_0 &lt;- lm(trust_neighbors ~ ln_export_pop, data = nunn_nomiss)
+mod_1_1 &lt;- lm(trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum +
+              education + occupation + religion + living_conditions +
+              district_ethnic_frac + frac_ethnicity_in_district +
+              isocode, data = nunn_nomiss)
+anova(mod_1_0, mod_1_1)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: trust_neighbors ~ ln_export_pop
+## Model 2: trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum + 
+##     education + occupation + religion + living_conditions + district_ethnic_frac + 
+##     frac_ethnicity_in_district + isocode
+##   Res.Df   RSS Df Sum of Sq      F    Pr(&gt;F)    
+## 1  17642 17251                                  
+## 2  17566 14777 76    2473.7 38.693 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>The p-value for the F-test is approximately 0, so the test rejects the null hypothesis that all the control variables are equal to 0 at all commonly used levels of significance.</p>
 <div class="bs-callout bs-callout-info">
 <ul>
-<li>How many variables have t-tests that are significant? Is this to be expected?</li>
-<li>Is the F-test significant?</li>
-<li>What is the null and alternative hypotheses of the F-test? What are the implicit null and alternative hypotheses of running all those t-tests? What explains the difference in results?</li>
+<li>Run and interpret an F-test for a reasonable subset of coefficients.</li>
+<li>Why can’t you use F-tests to compare different models in Table 1?</li>
+<li><p>Run an F-test comparing the model with only controls to the one in Model 1, Table 6. In other words, the null hypothesis is <span class="math inline">\(\beta_{\mathtt{ln\_exports\_pop}} = 0\)</span>.</p>
+<pre class="r"><code>mod_controls &lt;- lm(trust_neighbors ~ age + age2 + male + urban_dum +
+          education + occupation + religion + living_conditions +
+          district_ethnic_frac + frac_ethnicity_in_district +
+          isocode, data = nunn)    
+mod_1_6 &lt;- lm(trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum +
+          education + occupation + religion + living_conditions +
+          district_ethnic_frac + frac_ethnicity_in_district +
+          isocode, data = nunn)</code></pre>
+How does the <span class="math inline">\(p\)</span>-value of the F-test compare to the p-value of the regression coefficient on <code>ln_export_pop</code>? Square the t-statistic for the coefficient of <code>ln_export_pop</code>; how does it compare to the F-statistic? What is the relationship between a t-test and an F-test for a single parameter in a regression?</li>
 </ul>
+</div>
 </div>
 </div>
 <div class="footnotes">

@@ -21,7 +21,7 @@ pull request "Submission".
 To update your fork from the upstream repository:
 
 1. On your fork, e.g. `https://github.com/jrnold/Assignment_03` click on "New Pull request"
-2. Set your fork `jrnold/Assignment_03` as the base fork on the left, and `UW-POLS503/Assignment_03` as the head fork on the right. In both cases the branch will be master. This means, compare any canes in the head fork that are not in the base fork. You will see differences between the `US-POLS503` repository and your fork. Click on "Create Pull Request", and if there are no issues, "Click Merge" A quick way is to use this link, but change the `jrnold` to your own username: `https://github.com/jrnold/Assignment_03/compare/gh-pages...UW-POLS503:gh-pages`.
+2. Set your fork `jrnold/Assignment_03` as the base fork on the left, and `UW-POLS503/Assignment_03` as the head fork on the right. In both cases the branch will be master. This means, compare any canes in the head fork that are not in the base fork. You will see differences between the `US-POLS503` repository and your fork. Click on "Create Pull Request", and if there are no issues, "Click Merge" A quick way is to use this link, but change the `jrnold` to your own username: `https://github.com/jrnold/Assignment_03/compare/master...UW-POLS503:master`.
 
 We'll use these packages,
 ```{r message=FALSE}
@@ -76,6 +76,14 @@ Some of the relevant variables in the data are:
 - Individual controls: `age`, `age2`, `male`, `urban_dum`, `education`, `occupation`, `religion`, `living_conditions`
 - District controls: `district_ethnic_frac`, `frac_ethnicity_in_district`
 - Country-fixed effects: `isocode`
+
+Note that NW use `education`, `occupation`, `religion`, and `living_conditions` as factor variables. Convert them accordingly,
+```{r}
+factor_vars <- c("education", "occupation", "religion", "living_conditions")
+for (i in factor_vars) {
+  nunn[[i]] <- factor(nunn[[i]])
+}
+```
 
 
 ## Bivariate regression
@@ -137,12 +145,16 @@ variables that may explain differences.
 
 Run the model in Table 1, Model 1:
 ```{r}
-mod_1_1 <- lm(trust_neighbors ~ exports + 
-              age + age2 +
-              male + urban_dum + factor(education) + 
-              factor(occupation) + factor(religion) +
-              factor(living_conditions) + district_ethnic_frac +
-              frac_ethnicity_in_district + isocode,
+mod_1_1 <- lm(trust_neighbors ~
+              exports +
+              # controls
+              # individual level
+              age + age2 + male + urban_dum + education +
+              occupation + religion + living_conditions +
+              # district-level 
+              district_ethnic_frac + frac_ethnicity_in_district +
+              # country-level
+              isocode,
               data = nunn)
 mod_1_1
 ```
@@ -164,20 +176,18 @@ mod_1_1
 - Run the following regressions
     1. Regress regression of `trust_neighbors` on the controls.
         ```r
-        lm(trust_neighbors ~ age + age2 +
-           male + urban_dum + factor(education) + 
-           factor(occupation) + factor(religion) +
-           factor(living_conditions) + district_ethnic_frac +
-           frac_ethnicity_in_district + isocode, data = nunn)
+        lm(trust_neighbors ~ age + age2 + male + urban_dum +
+           education + occupation + religion + living_conditions +
+           district_ethnic_frac + frac_ethnicity_in_district +
+           isocode, data = nunn)
         ```
         Save the residuals.
     2. Run the regression of `exports` on the controls. Save the residuals
         ```r
-        lm(exports ~ age + age2 +
-           male + urban_dum + factor(education) + 
-           factor(occupation) + factor(religion) +
-           factor(living_conditions) + district_ethnic_frac +
-           frac_ethnicity_in_district + isocode, data = nunn)
+        lm(exports ~ age + age2 + male + urban_dum +
+           education + occupation + religion + living_conditions +
+           district_ethnic_frac + frac_ethnicity_in_district +
+           isocode, data = nunn)
         ```
         Save the residuals.
     3. Regress the residuals from 1. on the residuals on 2.
@@ -204,9 +214,9 @@ Run the regression in Table 1, model 6, which uses "log(1 + exports / pop)" as a
 
 ```{r}
 mod_1_6 <- lm(trust_neighbors ~ ln_export_pop + 
-              age + age2 + male + urban_dum + factor(education) +
-              factor(occupation) + factor(religion) +
-              factor(living_conditions) + district_ethnic_frac +
+              age + age2 + male + urban_dum + education +
+              occupation + religion +
+              living_conditions + district_ethnic_frac +
               frac_ethnicity_in_district + isocode,
               data = nunn)  
 ```
@@ -238,22 +248,27 @@ Then, the distribution of the $\beta^*$ is a sampling distribution of the parame
 Why is only $\vec{y}$ being samples? Why is $\mat{X}$ fixed in these simulations? See Wooldridge Ch 2 and 3 discussion of the assumptions of OLS.
 </div>
 
-Let's take the results of the model on `ln_exports_pop` and explore the sampling distribution of $\beta$ from that model.
+Let's take the results of the model on `ln_export_pop` and explore the sampling distribution of $\beta$ from that model.
 
 First run the model,
 ```{r}
 mod <- lm(trust_neighbors ~ ln_export_pop + 
-          age + age2 + male + urban_dum + factor(education) +
-          factor(occupation) + factor(religion) +
-          factor(living_conditions) + district_ethnic_frac +
+          age + age2 + male + urban_dum + education +
+          occupation + religion +
+          living_conditions + district_ethnic_frac +
           frac_ethnicity_in_district + isocode,
-          data = nunn) 
+          data = nunn, na.action = na.exclude)
 ```
+The argument `na.action = na.exclude` ensures that when we calculate residuals, etc. they will be padded with missing
+values so they are the same length as the original `nunn` data.
+There are other ways to work around this, but this makes the code to run the simulations easier, especially the step
+that draws `y_hat`.
+
 Extract the values of the parameter estimates, $\hat{\beta}$, the model matrix, $X$,the regression standard error, $\hat{\sigma}$, and the number of observations, $N$.
 ```{r}
-y_hat <- predict(mod)
-sigma <- sqrt(sum(residuals(mod) ^ 2) / mod$df.residual)
-n <- length(residuals(mod))
+y_hat <- predict(mod, na.action = na.exclude)
+sigma <- sqrt(sum(residuals(mod) ^ 2, na.rm = TRUE) / mod$df.residual)
+n <- nrow(nunn)
 ```
 Later we'll also need the original 
 Choose a number of iterations to run. 
@@ -266,38 +281,60 @@ Create a list to store the results
 results <- vector(mode = "list", length = iter)
 ```
 
+For iterations `1 ... iter` we cant to 
+
 - Draw the regression errors from i.i.d normal distributions, $\tilde\epsilon_i \sim N(0, \hat\sigma^2)$.
 - Generate a new dependent variable, $\tilde{\vec{y}} = \mat{X} \hat{\vec{\beta}} + \tilde{\vec{epsilon}}$.
-- Run the OLS regression to estimate the coefficients on the new data, $\tilde{\vec{y}} = \mat{X} \tilde{\vec{\beta}} + \tilde{\vec{\epsilon}}$
+- Run an OLS regression to estimate the coefficients on the new data, $\tilde{\vec{y}} = \mat{X} \tilde{\vec{\beta}} + \tilde{\vec{\epsilon}}$
+- Save the $\tilde{\beta}$
 
 ```{r}
-# Create a copy of the data to use in the regression
+p <- progress_estimated(iter, min_time = 2)
 for (i in seq_len(iter)) {
   # draw errors
   errors <- rnorm(n, mean = 0, sd = sigma)
   # create new outcome variable from errors
-  y <- y_hat + errors
+  nunn[["trust_neighbors_new"]] <- y_hat + errors
   # Replace the dependent variable with the newly sampled y
-  # re-run the original regression with the new data
-  # the update function re-runs the regression with changes
-  # to the regression formula. In this case, we will use
-  # y as the dependent variable instead of ln_exports_pop
-  # but use all the same predictors (the "." on the right hand side)
-  newmod <- update(mod, y ~ .)
+  newmod <- lm(trust_neighbors_new ~ ln_export_pop + 
+            age + age2 + male + urban_dum + education +
+            occupation + religion +
+            living_conditions + district_ethnic_frac +
+            frac_ethnicity_in_district + isocode,
+            data = nunn)
+  # Formula objects are manipulable in R. So a more general
+  # way to do the above is to alter the formula from the model
+  # by replacing trust_neighbors ~ ... with trust_neighbors_new ~ ...
+  # formula <- formula(mod$terms)
+  # formula[[2]] <- "trust_neighbors_imputed"
+  # # check that this worked
+  # # print(formula)
+  # # Also this should be put outside the loop, since it doesn't
+  # # change
+  # newmod <- lm(formula, data = nunn)
   # Save the coefficients as a data frame to the list
   results[[i]] <- tidy(newmod) %>% mutate(.iter = i)
+  # Progress bar update
+  p$tick()$print()
 }
+# clean up: remove the new variable
+nunn[["trust_neighbors_new"]] <- NULL
 ```
 Finally, since `results` is a list of data frames, stack the data frames in the list to form a single data frame that is easier to analyze:
 ```{r}
 results <- bind_rows(results)
 ```
+**Note:** this will take a few minutes.
+
 
 <div class="bs-callout bs-callout-info">
-- Plot the distribution of the coefficients of `ln_export_pop`. Use a density function 
+Use the results  of this simulation to answer the following questions:
+
+- Plot the distribution of the coefficients of `ln_export_pop`.
 - What is the standard deviation of the sampling distribution of the coefficient of `ln_export_pop`? How does this compare to the standard error of this coefficient given by `lm()`?
 - Calculate the correlation matrix of the coefficients. For the first step will need to create a data frame using `spread` in which the rows are iterations, the columns are coefficients, and the values are the esimates.
-- Plot that correlation matrix using `geom_raster`. Are the coefficients of coefficients uncorrelated? When would coefficients be uncorrelated?
+- Plot that correlation matrix using `geom_raster`. Are the coefficients of coefficients uncorrelated? In general, when would coefficients be more or less correlated?
+- Why is this simulation not (directly) appropriate for calculating a $p$-value. What distribution would you have to simulate from to calculate a $p$-value?
 </div>
 
 
@@ -373,11 +410,9 @@ For example, in a time series it would be inappropriate to sample observations w
 
 ## F-test example
 
-**TODO**
-
 An $F$-test tests the null hypothesis that several coefficients in the regression are all 0 vs. the alternative that 
 at least one of the coefficients is non-zero.
-
+Suppose you want to test that the $q$ coefficients $\beta_j$ through $\beta_{j + q}$ are all 0,
 $$
 \begin{aligned}[t]
 H_0: &\quad \beta_j = \dots = \beta_J = 0
@@ -387,48 +422,64 @@ $$
 
 To run an F-test in R, use the `anova()` function to compare two models.
 For example, to compare the regression of `trust_neighbors` on `exports` without controls to the regression with controls, use
-```{r}
+```{r error=TRUE}
+mod_1_0 <- lm(trust_neighbors ~ ln_export_pop, data = nunn)
+mod_1_1 <- lm(trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum +
+              education + occupation + religion + living_conditions +
+              district_ethnic_frac + frac_ethnicity_in_district +
+              isocode, data = nunn)
 anova(mod_1_0, mod_1_1)
 ```
-
-<div class="bs-callout bs-callout-info">
-- Run and interpret an F-test with 
-- Why can't you use F-tests to compare the different models in Table 1?
-</div>
-
-
-### F-test simulations
-
-To better understand the F-test, let's run some simulations. 
-
-First, we need to simulate data from the null hypothesis.
-In the null hypothesis, $H_0 = 0$ for all control variables.
-
-1. Simulate $\tilde{\varepsilon}$ from $N(0, \hat{\sigma}^2)$
-2. Run the regression.
-3. Calculate the F-statistic for each regression, and save them.
-4. Repeat 1--3, 5000 times.
-
-<div>
-- Why are we calculating the F-statistic from the regression ... rather than ...?
-- How would you calculate the p-value using that distribution?
-</div>
-
-
-
-# Multiple comparisons and the F-test
-
-This question compares an F-test to running multiple t-tests
-
-```{r results='hide'}
-noise <- data.frame(matrix(rnorm(2100), nrow = 100, ncol = 21))
-summary(lm(noise))
+We can't do it! At least not yet. The problem is that `lm()` drops all rows with at least one missing value.
+So `mod_1_0` and `mod_1_1` run a regression on datasets with different numbers of observations,
+```{r}
+mod_1_0$df.residual + length(mod_1_0$coefficients)
+mod_1_1$df.residual + length(mod_1_1$coefficients)
 ```
+The residual degrees of freedom is $N - K - 1$, and the length of the coefficient vector is $K + 1$, so
+their sum is the number of observations in the regression, $(N - K - 1) + (K + 1) = N$.
+
+To ensure that these models are run on the same set of data, create a subset of the `nunn` data that
+has all the variables in the larger model, and drop an observations with missing values in any of those
+variables, using `na.omit()`.
+```{r}
+nunn_nomiss <- nunn %>%
+  select(trust_neighbors, ln_export_pop, age, age2, male, urban_dum,
+         education, occupation, religion, living_conditions,
+         district_ethnic_frac, frac_ethnicity_in_district,
+         isocode) %>%
+  na.omit()
+```
+Now, we can compare the models,
+```{r}
+mod_1_0 <- lm(trust_neighbors ~ ln_export_pop, data = nunn_nomiss)
+mod_1_1 <- lm(trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum +
+              education + occupation + religion + living_conditions +
+              district_ethnic_frac + frac_ethnicity_in_district +
+              isocode, data = nunn_nomiss)
+anova(mod_1_0, mod_1_1)
+```
+The p-value for the F-test is approximately 0, so the test rejects the null 
+hypothesis that all the control variables are equal to 0 at all commonly used
+levels of significance.
 
 <div class="bs-callout bs-callout-info">
-- How many variables have t-tests that are significant? Is this to be expected?
-- Is the F-test significant? 
-- What is the null and alternative hypotheses of the F-test? What are the implicit
-  null and alternative hypotheses of running all those t-tests? What explains the
-  difference in results?
+- Run and interpret an F-test for a reasonable subset of coefficients.
+- Why can't you use F-tests to compare different models in Table 1?
+- Run an F-test comparing the model with only controls to the one in Model 1, Table 6.
+    In other words, the null hypothesis is $\beta_{\mathtt{ln\_exports\_pop}} = 0$.
+    ```r
+    mod_controls <- lm(trust_neighbors ~ age + age2 + male + urban_dum +
+              education + occupation + religion + living_conditions +
+              district_ethnic_frac + frac_ethnicity_in_district +
+              isocode, data = nunn)    
+    mod_1_6 <- lm(trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum +
+              education + occupation + religion + living_conditions +
+              district_ethnic_frac + frac_ethnicity_in_district +
+              isocode, data = nunn)
+    ```
+    How does the $p$-value of the F-test compare to the p-value of the regression
+    coefficient on `ln_export_pop`? Square the t-statistic for the coefficient
+    of `ln_export_pop`; how does it compare to the F-statistic? What is the
+    relationship between a t-test and an F-test for a single parameter in a regression?
 </div>
