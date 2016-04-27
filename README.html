@@ -331,7 +331,7 @@ mod_1_1</code></pre>
 <li>Interpret the coefficient on <code>exports</code></li>
 <li>How much does the coefficient change with the addition of control variables? What does that suggest?</li>
 <li>Do the R^2 and number of observations match those reported in Table 1?</li>
-<li>Calculate the fitted values of the regression by multiplying the <span class="math inline">\(\beta\)</span> vector and the <span class="math inline">\(\mat{X}\)</span> matrix. Confirm that you get the same results as using <code>predict()</code>.</li>
+<li>Calculate the fitted values of the regression by multiplying the <span class="math inline">\(\beta\)</span> vector and the <span class="math inline">\(\mat{X}\)</span> matrix. Use <code>model.matrix</code> to produce the <span class="math inline">\(X\)</span> matrix, and <code>%*%</code> to multiply matrices. Confirm that you get the same results as using <code>predict()</code>.</li>
 <li>How would you create a plot that shows the predicted values of <code>trust_neighbors</code> as the value of <code>exports</code> changes? What is different about the multiple regression case than the bivariate case?</li>
 </ul>
 </div>
@@ -356,7 +356,6 @@ Save the residuals.</li>
 <li>Regress the residuals from 1. on the residuals on 2.</li>
 </ol></li>
 <li>How does the coefficient from regression 3 compare the the coefficient on <code>exports</code> from the regression in Table 1, Model 1? What does that say about what multiple regression is doing?</li>
-<li>Are the steps</li>
 </ul>
 </div>
 </div>

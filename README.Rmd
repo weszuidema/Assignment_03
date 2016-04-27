@@ -163,7 +163,7 @@ mod_1_1
 - Interpret the coefficient on `exports`
 - How much does the coefficient change with the addition of control variables? What does that suggest?
 - Do the R^2 and number of observations match those reported in Table 1?
-- Calculate the fitted values of the regression by multiplying the $\beta$ vector and the $\mat{X}$ matrix.
+- Calculate the fitted values of the regression by multiplying the $\beta$ vector and the $\mat{X}$ matrix. Use `model.matrix` to produce the $X$ matrix, and `%*%` to multiply matrices.
   Confirm that you get the same results as using `predict()`.
 - How would you create a plot that shows the predicted values of `trust_neighbors` as the value of `exports` changes?
   What is different about the multiple regression case than the bivariate case?
@@ -193,7 +193,6 @@ mod_1_1
     3. Regress the residuals from 1. on the residuals on 2.
 - How does the coefficient from regression 3 compare the the coefficient on `exports` from the regression in Table 1, Model 1?
     What does that say about what multiple regression is doing?
-- Are the steps 
 </div>
 
 
