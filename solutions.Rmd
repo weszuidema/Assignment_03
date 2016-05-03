@@ -138,31 +138,58 @@ Understanding Multiple Regression
 1. Regress regression of `trust_neighbors` on the controls. 
 
 ```{r} 
-lm(trust_neighbors ~ age + age2 + male + urban_dum + education + occupation + religion + living_conditions + district_ethnic_frac + frac_ethnicity_in_district + isocode, data = nunn) 
+res_1 <- lm(trust_neighbors ~ age + age2 + male + urban_dum + education + occupation + religion + living_conditions + district_ethnic_frac + frac_ethnicity_in_district + isocode, data = nunn) 
+res_1 <- augment(res_1)
 ```
 
 Save the residuals. 
+
+```{r}
+
+r_1 <- data.frame(res_1$.resid)
+```
+
 
 2. Run the regression of `exports` on the controls. Save the residuals 
 
 ```{r} 
-lm(exports ~ age + age2 + male + urban_dum + education + occupation + religion + living_conditions + district_ethnic_frac + frac_ethnicity_in_district + isocode, data = nunn) 
+res_2 <- lm(exports ~ age + age2 + male + urban_dum + education + occupation + religion + living_conditions + district_ethnic_frac + frac_ethnicity_in_district + isocode, data = nunn)
+res_2 <- augment(res_2)
 ```
 
 Save the residuals. 
 
+```{r}
+r_2 <- data.frame(res_2$.resid)
+```
+
+
 3. Regress the residuals from 1. on the residuals on 2. 
 
+```{r}
+res_both <- rbind(c(r_1, r_2))
+lm(r_1 ~ r_2, res_both)
+```
+
+Ok, I clearly can't figure out how to put both sets of residuals into the same data frame to run a regression.
+
 - How does the coefficient from regression 3 compare the the coefficient on `exports` from the regression in Table 1, Model 1? What does that say about what multiple regression is doing?
+
+```{r}
+summary(mod1)
+```
+
+Since this is a teaching moment, I assume they are identical, which means the regression coefficient in model 1 is telling us everything that exports explains about trust that isn't explained by all the variables that are also correlated with both exports and trust.
+
 
 Validity of the standard errors
 
 One of the assumptions necessary for OLS standard errors to be correct is homoskedasticity homoskedasticity (constant variance), and that the errors are uncorrelated.
 
 - How might that assumption be violated? 
-- Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors? 
-- Do the standard errors match those reported in Table 1 of the article? What sort of standard errors does the article use?
+Our independent variables might be correlated with the error term, or there may be more variance for some values of our independent variables than others
 
+- Plot the residuals of the regression by district. Do they appear to be uncorrelated? What does that say about the validity of the OLS standard errors? 
 
 ```{r}
 mod1_aug <- augment(mod1, nunn)
@@ -171,15 +198,22 @@ ggplot(mod1_aug, aes(x = ethnicity, y = .resid)) + geom_boxplot()
 mod1_aug <- mod1_aug %>%
   group_by(ethnicity) %>%
   mutate(ethnic_mean = mean(.resid, na.rm = T))
-ggplot(mod1_aug, aes(x = ethnicity, y = ethnic_mean)) + geom_point(aes(size = (ethnicity)))
+ggplot(mod1_aug, aes(x = ethnicity, y = ethnic_mean)) + geom_point()
 ```
+There appears to be more variation for some groups than others, and the mean of the errors does not seem to be zero. OLS standard errors are probably not valid, since we seem to be violating this assumption.
+
+- Do the standard errors match those reported in Table 1 of the article? What sort of standard errors does the article use?
+
+They do not match, because the article uses several varieties of clustered standard errors.
+
+
+
 
 
 Regressions with log slave exports per capita
+
+
 Run the regression in Table 1, model 6, which uses "log(1 + exports / pop)" as a measure of slave exports.
-
-
-              
 ```{r}
 mod_1_6 <- lm(trust_neighbors ~ ln_export_pop + 
               age + age2 + male + urban_dum + education +
@@ -189,8 +223,36 @@ mod_1_6 <- lm(trust_neighbors ~ ln_export_pop +
               data = nunn) 
 ```
 
+- Interpret the effect of `ln_export_pop` on `trust_neighbors` 
 
-- Interpret the effect of `ln_export_pop` on `trust_neighbors` - Why is "log(1 + exports / pop)" used as the measure instead of "log(exports / pop)"? - Plot the fitted values of log(1 + exports / pop) and their confidence interval against "log(1 + exports / pop)" against the residuals of the controls only regression. Include the line, confidence intervals, and data points. - Plot the fitted values of exports / pop against the residuals of the controls only regression. Include the line, confidence intervals, and data points. How does this relationship differ from the one which used the level of slave exports with out taking the logarithm or adjusting for population?
+```{r}
+summary(mod_1_6)
+```
+
+For every percentage point increase in export\_pop, trust\_neighbors decreases by -.8296 units
+
+- Why is "log(1 + exports / pop)" used as the measure instead of "log(exports / pop)"? 
+If we don't add the 1 + , R is unable to evaluate the natural log.
+
+- Plot the fitted values of log(1 + exports / pop) and their confidence interval against the residuals of the controls only regression. Include the line, confidence intervals, and data points. 
+
+```{r}
+res_2$residuals <- res_2$.resid
+res_2_a <- res_2[ , "residuals", drop = F]
+
+augmod1_6 <- augment(mod_1_6, res_2_a)
+ggplot(augmod1_6, aes(residuals, .fitted)) + geom_point()
+```
+I do not know how to make this plot. The question seems unclear to me. Is the controls only regression the regression of all the controls on "export"? I assumed it was, but those regressions have different numbers of row, so I don't know how to plot the fitted values of one against the residuals of the other.
+
+
+- Plot the fitted values of exports / pop against the residuals of the controls only regression. Include the line, confidence intervals, and data points. How does this relationship differ from the one which used the level of slave exports with out taking the logarithm or adjusting for population?
+
+```{r}
+
+```
+
+Same problem as the previous question in terms of making the plot.
 
 
 Sampling distribution of OLS coefficients
@@ -200,9 +262,9 @@ Let's understand what the confidence intervals mean in terms of the sampling dis
 
 The plan to generate a sampling distribution of $\beta$ is:
 
-    Draw a new sample $\tilde{y}_i \sim N(\hat{y}_i, \hat{\sigma}^2)$.
-    Estimate OLS estimates $\tilde{\vec{y}} = \tilde{vec{beta}} \mat{X} + \tilde{vec{varepsilon}} = \hat{y} + \tilde{\vec{\varepsilon}}$.
-    Repeat steps 1--2, iter times, store $\beta^*$ for each iteration, and return the estimates for all samples.
+Draw a new sample $\tilde{y}_i \sim N(\hat{y}_i, \hat{\sigma}^2)$.
+Estimate OLS estimates $\tilde{\vec{y}} = \tilde{vec{beta}} \mat{X} + \tilde{vec{varepsilon}} = \hat{y} + \tilde{\vec{\varepsilon}}$.
+Repeat steps 1--2, iter times, store $\beta^*$ for each iteration, and return the estimates for all samples.
 
 Then, the distribution of the $\beta^*$ is a sampling distribution of the parameters.
 Why is only $\vec{y}$ being samples? Why is $\mat{X}$ fixed in these simulations? See Wooldridge Ch 2 and 3 discussion of the assumptions of OLS.
@@ -211,36 +273,46 @@ Let's take the results of the model on ln_export_pop and explore the sampling di
 
 First run the model,
 
+```{r}
 mod <- lm(trust_neighbors ~ ln_export_pop + 
           age + age2 + male + urban_dum + education +
           occupation + religion +
           living_conditions + district_ethnic_frac +
           frac_ethnicity_in_district + isocode,
           data = nunn, na.action = na.exclude)
+```
 
 The argument na.action = na.exclude ensures that when we calculate residuals, etc. they will be padded with missing values so they are the same length as the original nunn data. There are other ways to work around this, but this makes the code to run the simulations easier, especially the step that draws y_hat.
 
 Extract the values of the parameter estimates, $\hat{\beta}$, the model matrix, $X$,the regression standard error, $\hat{\sigma}$, and the number of observations, $N$.
 
+```{r}
 y_hat <- predict(mod, na.action = na.exclude)
 sigma <- sqrt(sum(residuals(mod) ^ 2, na.rm = TRUE) / mod$df.residual)
 n <- nrow(nunn)
+```
 
 Later we'll also need the original Choose a number of iterations to run. For this example use 1,024.
 
+
+```{r}
 iter <- 1024
+```
 
 Create a list to store the results
 
+```{r}
 results <- vector(mode = "list", length = iter)
+```
 
-For iterations 1 ... iter we cant to
+For iterations 1 ... iter we want to
 
-    Draw the regression errors from i.i.d normal distributions, $\tilde\epsilon_i \sim N(0, \hat\sigma^2)$.
-    Generate a new dependent variable, $\tilde{\vec{y}} = \mat{X} \hat{\vec{\beta}} + \tilde{\vec{epsilon}}$.
-    Run an OLS regression to estimate the coefficients on the new data, $\tilde{\vec{y}} = \mat{X} \tilde{\vec{\beta}} + \tilde{\vec{\epsilon}}$
-    Save the $\tilde{\beta}$
+Draw the regression errors from i.i.d normal distributions, $\tilde\epsilon_i \sim N(0, \hat\sigma^2)$.
+Generate a new dependent variable, $\tilde{\vec{y}} = \mat{X} \hat{\vec{\beta}} + \tilde{\vec{epsilon}}$.
+Run an OLS regression to estimate the coefficients on the new data, $\tilde{\vec{y}} = \mat{X} \tilde{\vec{\beta}} + \tilde{\vec{\epsilon}}$
+Save the $\tilde{\beta}$
 
+```{r}
 p <- progress_estimated(iter, min_time = 2)
 for (i in seq_len(iter)) {
   # draw errors
@@ -271,13 +343,30 @@ for (i in seq_len(iter)) {
 }
 # clean up: remove the new variable
 nunn[["trust_neighbors_new"]] <- NULL
+```
 
 Finally, since results is a list of data frames, stack the data frames in the list to form a single data frame that is easier to analyze:
 
+```{r}
 results <- bind_rows(results)
+```
 
 Note: this will take a few minutes.
-Use the results of this simulation to answer the following questions: - Plot the distribution of the coefficients of `ln_export_pop`. - What is the standard deviation of the sampling distribution of the coefficient of `ln_export_pop`? How does this compare to the standard error of this coefficient given by `lm()`? - Calculate the correlation matrix of the coefficients. For the first step will need to create a data frame using `spread` in which the rows are iterations, the columns are coefficients, and the values are the estimates. - Plot that correlation matrix using `geom_raster`. Are the coefficients of coefficients uncorrelated? In general, when would coefficients be more or less correlated? - Why is this simulation not (directly) appropriate for calculating a $p$-value. What distribution would you have to simulate from to calculate a $p$-value?
+
+Use the results of this simulation to answer the following questions: 
+
+- Plot the distribution of the coefficients of `ln_export_pop`. 
+
+- What is the standard deviation of the sampling distribution of the coefficient of `ln_export_pop`? How does this compare to the standard error of this coefficient given by `lm()`? 
+
+- Calculate the correlation matrix of the coefficients. For the first step will need to create a data frame using `spread` in which the rows are iterations, the columns are coefficients, and the values are the estimates. 
+
+- Plot that correlation matrix using `geom_raster`. Are the coefficients of coefficients uncorrelated? In general, when would coefficients be more or less correlated? 
+
+- Why is this simulation not (directly) appropriate for calculating a $p$-value. What distribution would you have to simulate from to calculate a $p$-value?
+
+
+
 Non-parametric Bootstrap
 
 The previous question was an example of parametric bootstrap. It is a parametric bootstrap because you drew data from an assumed model (the OLS model that you estimated).
@@ -290,48 +379,67 @@ To do the bootstrapping we will use the bootstrap function in the tidyr package.
 
 Let's start by drawing a single bootstrap replication. It is a sample of the same size as the original data, drawn from the data with replacement.
 
+```{r}
 nunn_bootstrapped <- bootstrap(nunn, 1)
+```
 
 So, in order to calculate bootstrap standard errors, we will need to draw a sample of To get bootstrap standard errors, we draw B replications, run an regression, and save the estimates.
 
+```{r}
 beta_bs <- 
   bootstrap(nunn, 1024) %>%
     do(tidy(lm(trust_neighbors ~ ln_export_pop, data = .)))
+```
 
 There are several ways to calculate standard errors from the bootstrap replications. The following are two simple methods.
 
-    Calculate the standard error from these simulations by taking the standard deviation of the estimates. Suppose $\beta^{b}_k$ is the estimated coefficient from replication $b \in 1:B$, and $\bar\beta^{}k = (\sum \beta^{*b}_k) / B$. Then the bootstrap standard error is, $$ \se_k(\hat\beta{k}) = \sqrt{\frac{1}{B - 1} \sum (\beta^{b}_k - \bar\beta^{b}k)^2} $$ The confidence interval is thus, $$ \hat{\beta}_k \pm \se{bs}(\hat\beta_k) $$ Note that you use the estimate $\hat{\beta}_k$ from the original model, not the mean of the bootstrap estimates. This method works well if the sampling distribution of $\beta_k$ is symmetric.
+Calculate the standard error from these simulations by taking the standard deviation of the estimates. Suppose $\beta^{b}_k$ is the estimated coefficient from replication $b \in 1:B$, and $\bar\beta^{}k = (\sum \beta^{*b}_k) / B$. Then the bootstrap standard error is, $$ \se_k(\hat\beta{k}) = \sqrt{\frac{1}{B - 1} \sum (\beta^{b}_k - \bar\beta^{b}k)^2} $$ The confidence interval is thus, $$ \hat{\beta}_k \pm \se{bs}(\hat\beta_k) $$ Note that you use the estimate $\hat{\beta}_k$ from the original model, not the mean of the bootstrap estimates. This method works well if the sampling distribution of $\beta_k$ is symmetric.
 
-    The second method is to use the quantiles of the bootstrap estimates. E.g. a 95% confidence interval uses the 2.5% and 97.5% quantiles of the bootstrap estimates. This method allows for asymmetric confidence intervals. However, it takes more replications to get accurate values of extreme quantiles than it does to calculate a standard deviation.
+The second method is to use the quantiles of the bootstrap estimates. E.g. a 95% confidence interval uses the 2.5% and 97.5% quantiles of the bootstrap estimates. This method allows for asymmetric confidence intervals. However, it takes more replications to get accurate values of extreme quantiles than it does to calculate a standard deviation.
 
 - Estimate the bootstrapped confidence intervals using those two methods. - Compare the bootstrapped confidence intervals to the OLS confidence interval.
 
 There are even more advanced methods such as the studentized bootstrap, and the adjusted bootstrap percentile (BCa) methods included in boot.ci.
 
 For bootstrapped standard errors to be valid, the samples from the data need to be taken in the same way as the sample was taken from the population. For example, in a time series it would be inappropriate to sample observations without accounting for their order.
-- What is the population in this paper? - How was the sample drawn from this population? - In the previous examples, did we draw the sample in the same way as it was drawn from the population? What would be a better way of drawing the bootstrapped samples? Try to implement it; see the `group_by` argument of `bootstrap`.
+
+- What is the population in this paper? 
+
+- How was the sample drawn from this population? 
+
+- In the previous examples, did we draw the sample in the same way as it was drawn from the population? What would be a better way of drawing the bootstrapped samples? Try to implement it; see the `group_by` argument of `bootstrap`.
+
+
+
 F-test example
 
 An $F$-test tests the null hypothesis that several coefficients in the regression are all 0 vs. the alternative that at least one of the coefficients is non-zero. Suppose you want to test that the $q$ coefficients $\beta_j$ through $\beta_{j + q}$ are all 0, $$ \begin{aligned}[t] H_0: &\quad \beta_j = \dots = \beta_J = 0 H_a: &\quad \text{at least one $\beta_k \neq 0$} \end{aligned} $$
 
 To run an F-test in R, use the anova() function to compare two models. For example, to compare the regression of trust_neighbors on exports without controls to the regression with controls, use
 
+```{r}
 mod_1_0 <- lm(trust_neighbors ~ ln_export_pop, data = nunn)
 mod_1_1 <- lm(trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum +
               education + occupation + religion + living_conditions +
               district_ethnic_frac + frac_ethnicity_in_district +
               isocode, data = nunn)
 anova(mod_1_0, mod_1_1)
+```
 
 ## Error in anova.lmlist(object, ...): models were not all fitted to the same size of dataset
 
 We can't do it! At least not yet. The problem is that lm() drops all rows with at least one missing value. So mod_1_0 and mod_1_1 run a regression on datasets with different numbers of observations,
 
+```{r}
 mod_1_0$df.residual + length(mod_1_0$coefficients)
+
+```
 
 ## [1] 18112
 
+```{r}
 mod_1_1$df.residual + length(mod_1_1$coefficients)
+```
 
 ## [1] 17644
 
@@ -339,21 +447,26 @@ The residual degrees of freedom is $N - K - 1$, and the length of the coefficien
 
 To ensure that these models are run on the same set of data, create a subset of the nunn data that has all the variables in the larger model, and drop an observations with missing values in any of those variables, using na.omit().
 
+```{r}
 nunn_nomiss <- nunn %>%
   select(trust_neighbors, ln_export_pop, age, age2, male, urban_dum,
          education, occupation, religion, living_conditions,
          district_ethnic_frac, frac_ethnicity_in_district,
          isocode) %>%
   na.omit()
+```
 
 Now, we can compare the models,
 
+```{r}
 mod_1_0 <- lm(trust_neighbors ~ ln_export_pop, data = nunn_nomiss)
 mod_1_1 <- lm(trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum +
               education + occupation + religion + living_conditions +
               district_ethnic_frac + frac_ethnicity_in_district +
               isocode, data = nunn_nomiss)
 anova(mod_1_0, mod_1_1)
+```
+
 
 ## Analysis of Variance Table
 ## 
@@ -368,4 +481,11 @@ anova(mod_1_0, mod_1_1)
 ## Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
 
 The p-value for the F-test is approximately 0, so the test rejects the null hypothesis that all the control variables are equal to 0 at all commonly used levels of significance.
-- Run and interpret an F-test for a reasonable subset of coefficients. - Why can't you use F-tests to compare different models in Table 1? - Run an F-test comparing the model with only controls to the one in Model 1, Table 6. In other words, the null hypothesis is $\beta_{\mathtt{ln\_exports\_pop}} = 0$. ```r mod_controls <- lm(trust_neighbors ~ age + age2 + male + urban_dum + education + occupation + religion + living_conditions + district_ethnic_frac + frac_ethnicity_in_district + isocode, data = nunn) mod_1_6 <- lm(trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum + education + occupation + religion + living_conditions + district_ethnic_frac + frac_ethnicity_in_district + isocode, data = nunn) ``` How does the $p$-value of the F-test compare to the p-value of the regression coefficient on `ln_export_pop`? Square the t-statistic for the coefficient of `ln_export_pop`; how does it compare to the F-statistic? What is the relationship between a t-test and an F-test for a single parameter in a regression? 
+
+- Run and interpret an F-test for a reasonable subset of coefficients. 
+
+- Why can't you use F-tests to compare different models in Table 1? 
+
+- Run an F-test comparing the model with only controls to the one in Model 1, Table 6. In other words, the null hypothesis is $\beta_{\mathtt{ln\_exports\_pop}} = 0$. ```r mod_controls <- lm(trust_neighbors ~ age + age2 + male + urban_dum + education + occupation + religion + living_conditions + district_ethnic_frac + frac_ethnicity_in_district + isocode, data = nunn) mod_1_6 <- lm(trust_neighbors ~ ln_export_pop + age + age2 + male + urban_dum + education + occupation + religion + living_conditions + district_ethnic_frac + frac_ethnicity_in_district + isocode, data = nunn) ``` How does the $p$-value of the F-test compare to the p-value of the regression coefficient on `ln_export_pop`? 
+
+- Square the t-statistic for the coefficient of `ln_export_pop`; how does it compare to the F-statistic? What is the relationship between a t-test and an F-test for a single parameter in a regression? 
